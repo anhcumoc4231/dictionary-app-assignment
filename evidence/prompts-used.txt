@@ -1,0 +1,12 @@
+Date: 2026-03-12
+Tool: ChatGPT
+
+Purpose:
+- Asked for guidance on how to upload the project to GitHub using the web interface
+- Asked for explanation of repository setup options (README, visibility, gitignore, license)
+- Asked for help writing an appropriate README for the initial source code
+- Asked for guidance on how to store evidence for AI/tool usage
+
+Notes:
+- AI was used as a support tool for guidance, documentation, and planning
+- The uploaded source code is the original starting point for future improvements
