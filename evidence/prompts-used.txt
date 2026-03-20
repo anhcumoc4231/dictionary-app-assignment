@@ -1,12 +1,95 @@
-Date: 2026-03-12
-Tool: ChatGPT, Gemini
+PROMPTS USED — AI-Assisted Development Log
+==========================================
+Project: English-Vietnamese Dictionary Application
+Tool   : Google Gemini / Antigravity AI Assistant
 
-Purpose:
-- Asked for guidance on how to upload the project to GitHub using the web interface
-- Asked for explanation of repository setup options (README, visibility, gitignore, license)
-- Asked for help writing an appropriate README for the initial source code
-- Asked for guidance on how to store evidence for AI/tool usage
+------------------------------------------
+SESSION 1 — 2026-03-13 (Architecture & Core Logic)
+------------------------------------------
 
-Notes:
-- AI was used as a support tool for guidance, documentation, and planning
-- The uploaded source code is the original starting point for future improvements
+PROMPT 1 — OOP Architecture Design
+Question asked to AI:
+  "Thiết kế kiến trúc OOP cho ứng dụng từ điển Anh-Việt với các lớp
+   LexicalEntry, StorageEngine, IndexNavigator, DictionaryApp.
+   Giải thích vai trò từng lớp và nguyên tắc Single Responsibility."
+
+AI assistance received:
+  - Suggested dataclass for LexicalEntry with fields: word, meanings, phonetic, word_class, examples
+  - Recommended keeping file handles as private attributes (_fh) inside StorageEngine
+  - Explained Facade pattern for DictionaryApp coordinating other layers
+  - Suggested context manager __enter__/__exit__ for safe resource cleanup
+
+Code generated with AI help: models.py, storage.py, index_navigator.py, app.py
+
+------------------------------------------
+PROMPT 2 — Fixed-Width Binary Search Index
+Question asked to AI:
+  "Giải thích cách triển khai binary search trực tiếp trên ổ đĩa (disk-based)
+   với fixed-width records 53 byte. Tại sao fixed-width giải quyết được vấn đề
+   variable-length records? Viết thuật toán while left <= right."
+
+AI assistance received:
+  - Explained the math: seek(mid * 53) lands exactly on record boundary
+  - Clarified that O(log n) binary search works only if index is sorted alphabetically
+  - Warned about UTF-8 encoding: len(s.encode('utf-8')) != len(s) for Vietnamese text
+  - Provided the binary search loop with left/right/mid pattern
+
+Code generated with AI help: index_navigator.py (binary search method)
+
+------------------------------------------
+PROMPT 3 — ETL Data Pipeline Architecture
+Question asked to AI:
+  "Xây dựng ETL pipeline (Extract-Transform-Load) để đọc CSV chứa 100K từ vựng
+   Anh-Việt, merge với IPA JSON và Tatoeba TSV, sau đó ghi ra meaning.data và
+   index.data theo cấu trúc 53-byte fixed-width. Giải thích current_offset."
+
+AI assistance received:
+  - Recommended csv.DictReader for reading CSV with mixed encoding
+  - Explained current_offset pattern: offset += len(json_bytes) where len is byte-length
+  - Suggested embedding 100 sample words so app works without downloading data
+  - Recommended separators=(",",":") in json.dumps to minimize byte size
+  - Warned: DO NOT use len(string) — must use len(string.encode('utf-8')) for length field
+
+Code generated with AI help: build_database.py (entire ETL pipeline)
+
+------------------------------------------
+PROMPT 4 — Tkinter GUI Event-Driven Architecture
+Question asked to AI:
+  "Xây dựng GUI Tkinter với dark mode cho từ điển. Cần: ô tìm kiếm, nút phát âm
+   (TTS pyttsx3 không chặn UI), text widget có scroll hiển thị kết quả với màu sắc
+   khác nhau cho nghĩa và ví dụ, và status bar hiển thị cache hit/miss."
+
+AI assistance received:
+  - Explained that pyttsx3 blocks the main thread → must run in threading.Thread(daemon=True)
+  - Suggested Text widget with tag_configure for color-coded formatting
+  - Recommended binding <Return> on Entry widget for keyboard UX
+  - Explained that functools.lru_cache on an instance method requires a workaround
+    (assign lru_cache result to self._lookup_cached in __init__)
+  - Suggested auto-building database on first launch using importlib
+
+Code generated with AI help: gui.py (full Tkinter UI class)
+
+------------------------------------------
+PROMPT 5 — LRU Cache Integration
+Question asked to AI:
+  "Tại sao không thể dùng @functools.lru_cache decorator trực tiếp trên
+   phương thức của class? Cách giải quyết đúng là gì?"
+
+AI assistance received:
+  - Explained: instance methods receive 'self' as first arg, which is not hashable
+    by lru_cache when the instance contains mutable state (file handles)
+  - Solution: in __init__, cache a bound function reference:
+    self._lookup_cached = lru_cache(maxsize=256)(self._lookup)
+  - This makes the cache specific to the instance, not the class
+
+Code incorporated into: app.py
+
+------------------------------------------
+SUMMARY OF AI TOOL USAGE
+------------------------------------------
+Total AI prompts used      : 5
+AI assistance category     : Architecture design, algorithm explanation,
+                             code generation, debugging guidance
+Code written independently : evidence files, .gitignore, requirements.txt,
+                             sample data entries (word definitions curated manually)
+AI tool used               : Google Gemini / Antigravity AI Coding Assistant

@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# Raw data files (too large for GitHub — download separately)
+data/raw/
+data/raw/*.csv
+data/raw/*.json
+data/raw/*.tsv
+data/raw/*.txt
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Generated data (optional — comment out if you want to track small datasets)
+# data/meaning.data
+# data/index.data

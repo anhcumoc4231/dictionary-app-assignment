@@ -1,15 +1,115 @@
-Development Log
+DEVELOPMENT LOG — Dictionary App Assignment
+==========================================
+Project: English-Vietnamese Dictionary Application
+Course : PFP191 / Programming Fundamentals with Python
 
-2026-03-12
-- Created GitHub repository
-- Uploaded initial source code:
-  - dictionaryapp.py
-  - index.data
-  - meaning.data
-- Updated README to reflect the current project status
-- Created evidence files to document AI/tool usage
+------------------------------------------
+[2026-03-13] PHASE 1 — OOP Architecture Refactoring
+------------------------------------------
+COMPLETED: Converted procedural code to Object-Oriented design.
 
-Current status:
-- Repository contains the initial source code
-- No functional improvements have been implemented yet
-- Next step: analyze the source code and begin improvement planning
+Files created:
+  - models.py       : LexicalEntry dataclass (DTO)
+                      Encapsulates word, meanings (list), phonetic (IPA),
+                      word_class, examples (list of EN/VI pairs).
+                      Includes to_bytes() / from_bytes() for serialization.
+
+  - storage.py      : StorageEngine persistence layer
+                      Manages binary file handle to meaning.data.
+                      Methods: read_entry(offset, length), append_entry(entry).
+                      File pointer is a private attribute — never exposed globally.
+
+  - index_navigator.py : IndexNavigator algorithmic layer
+                      Implements disk-based O(log n) binary search.
+                      Fixed-width 53-byte records: keyword[32]+offset[12]+length[8]+\n[1].
+                      Uses seek(record_no * 53) for exact boundary landing.
+
+  - app.py          : DictionaryApp facade
+                      Coordinates IndexNavigator + StorageEngine.
+                      Integrates functools.lru_cache(maxsize=256) for O(1) repeat lookups.
+
+Design principles applied:
+  - Single Responsibility Principle (SRP): each class has one job
+  - Encapsulation: file handles are private (_fh attribute)
+  - Context Manager protocol: all classes support `with` statement
+
+------------------------------------------
+[2026-03-13] PHASE 2 — O(log n) Binary Search Algorithm
+------------------------------------------
+COMPLETED: Replaced O(n) linear scan with disk-based O(log n) binary search.
+
+Technical implementation:
+  - index.data uses FIXED-WIDTH records (exactly 53 bytes each):
+      Field       Width   Description
+      keyword     32 B    Space-padded ASCII — enables direct offset math
+      offset      12 B    Zero-padded integer (position in meaning.data)
+      length       8 B    Zero-padded integer (byte-length of entry)
+      newline      1 B    \n separator
+      TOTAL       53 B
+
+  - Binary search formula: seek(mid * 53)
+    This lands exactly at record boundary — no pointer realignment needed.
+    Algorithm: while left <= right: mid=(left+right)//2; compare; adjust bounds.
+
+  - Performance: For 100,000 words → max ~17 comparisons (log2(100000) ≈ 16.6)
+    vs 100,000 comparisons for linear search.
+
+  - IMPORTANT: length stored is byte-length after UTF-8 encoding (len(s.encode('utf-8')))
+    NOT char-length. Vietnamese diacritics (ề, ặ) use 3 bytes each in UTF-8.
+
+------------------------------------------
+[2026-03-13] PHASE 3 — Data Pipeline (ETL)
+------------------------------------------
+COMPLETED: Built automated ETL pipeline to synthesize dictionary data.
+
+File created: build_database.py
+
+Pipeline stages:
+  1. EXTRACT  — Loads 100 embedded English-Vietnamese entries (SAMPLE_DATA dict).
+                Optionally merges: data/raw/en_vi.csv, data/raw/ipa.json,
+                data/raw/tatoeba.tsv if present.
+  2. TRANSFORM — Sorts master dict alphabetically (required for binary search).
+  3. LOAD      — Writes binary meaning.data + 53-byte fixed-width index.data.
+                current_offset tracks byte position; incremented by entry byte-length.
+
+Data sources supported:
+  - Embedded 100-word sample (no download needed)
+  - External CSV: data/raw/en_vi.csv (columns: word, meaning)
+  - External IPA: data/raw/ipa.json (format: {"word": "/ɪpɑː/"})
+  - External sentences: data/raw/tatoeba.tsv (format: EN\tVI)
+
+.gitignore configured to exclude data/raw/ (files may exceed 100MB GitHub limit).
+
+------------------------------------------
+[2026-03-13] PHASE 4 — Tkinter GUI + LRU Cache + TTS
+------------------------------------------
+COMPLETED: Built graphical user interface and non-functional enhancements.
+
+File created: gui.py
+
+GUI features:
+  - Dark-mode design (navy/violet/gold color palette)
+  - Search bar (Entry + Button with Enter-key binding)
+  - Scrollable results panel (Text widget with tag-based formatting)
+  - Word displayed in bold-large; IPA in italic-gold; meanings numbered
+  - Examples displayed in gray-italic (English) and muted (Vietnamese)
+  - Part-of-speech pill badges (color-coded: noun=blue, verb=purple, adj=gold)
+  - 🔊 Speak button — runs pyttsx3 in background thread (non-blocking UI)
+  - Auto-builds database on first launch if data files are missing
+
+Performance enhancements:
+  - functools.lru_cache(maxsize=256) in DictionaryApp
+    → First lookup: O(log n) disk binary search
+    → Repeat lookup: O(1) RAM cache hit
+  - Status bar shows cache hit/miss counter live
+
+Files also created: build_index.py, requirements.txt, .gitignore
+
+------------------------------------------
+SUMMARY
+------------------------------------------
+Total files created: 9 (models.py, storage.py, index_navigator.py, app.py,
+                        build_database.py, build_index.py, gui.py,
+                        requirements.txt, .gitignore)
+Algorithm complexity: O(log n) lookup, O(1) cached repeat lookup
+Data: 100 embedded EN-VI entries with IPA + context examples
