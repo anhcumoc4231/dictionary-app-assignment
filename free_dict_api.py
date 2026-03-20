@@ -7,7 +7,8 @@ Tuy nhiên bản chất là từ điển Anh-Anh nên trường 'translation' (D
 
 import os
 import requests  # type: ignore
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+from deep_translator import GoogleTranslator # type: ignore
 
 from models import LexicalEntry, Sense  # type: ignore
 
@@ -56,20 +57,49 @@ class FreeDictClient:
                 
         # 2. Senses (Meanings)
         senses = []
+        
+        # Tiền xử lý để gom text đi dịch 1 lần (Batch Translation) giúp tăng tốc độ đáng kể
+        lines_to_translate: List[str] = []
+        
+        for meaning in entry_data.get("meanings", []):
+            for def_data in meaning.get("definitions", []):
+                lines_to_translate.append(def_data.get("definition", ""))
+                lines_to_translate.append(def_data.get("example", ""))
+                
+        # Thực hiện dịch Batch
+        translated_lines = []
+        if lines_to_translate:
+            try:
+                # deep-translator's translate_batch does the heavy lifting
+                translated_lines = GoogleTranslator(source='en', target='vi').translate_batch(lines_to_translate)
+            except Exception as e:
+                print(f"Translation failed: {e}")
+                translated_lines = [""] * len(lines_to_translate)
+
+        # Trích xuất lại từ mảng đã dịch
+        idx = 0
         for meaning in entry_data.get("meanings", []):
             pos = meaning.get("partOfSpeech", "")
             for def_data in meaning.get("definitions", []):
                 definition = def_data.get("definition", "")
                 ex_text = def_data.get("example", "")
                 
+                translated_def = str(translated_lines[idx]) if idx < len(translated_lines) and translated_lines[idx] else "" # type: ignore
+                idx += 1
+                translated_ex = str(translated_lines[idx]) if idx < len(translated_lines) and translated_lines[idx] else "" # type: ignore
+                idx += 1
+                
                 examples = []
                 if ex_text:
-                    examples.append({"en": ex_text})
+                    examples.append({
+                        "en": ex_text,
+                        "vi": translated_ex
+                    })
                     
                 s_obj = Sense(
                     pos=pos.capitalize() if pos else "",
                     definition=definition,
-                    translation="",  # Từ điển Anh-Anh, không có dịch sẵn tiếng Việt
+                    translation=translated_def,  # Đã có tiếng Việt!
                     examples=examples
                 )
                 senses.append(s_obj)
