@@ -66,12 +66,19 @@ class FreeDictClient:
                 lines_to_translate.append(def_data.get("definition", ""))
                 lines_to_translate.append(def_data.get("example", ""))
                 
-        # Thực hiện dịch Batch
+        # Thực hiện dịch Toàn bộ Cùng Lúc (Super Fast ~1s)
         translated_lines = []
         if lines_to_translate:
             try:
-                # deep-translator's translate_batch does the heavy lifting
-                translated_lines = GoogleTranslator(source='en', target='vi').translate_batch(lines_to_translate)
+                # Gộp tất cả cách nhau bởi xuống dòng \n để Google không gộp câu
+                joined_text = "\n".join(lines_to_translate)
+                translated_text = GoogleTranslator(source='en', target='vi').translate(joined_text)
+                translated_lines = [t.strip() for t in translated_text.split("\n")]
+                
+                # Fallback nếu số lượng trả về ít hơn đầu vào do lỗi Google bỏ dấu \n
+                while len(translated_lines) < len(lines_to_translate):
+                    translated_lines.append("")
+                    
             except Exception as e:
                 print(f"Translation failed: {e}")
                 translated_lines = [""] * len(lines_to_translate)
