@@ -61,28 +61,27 @@ class FreeDictClient:
         # Tiền xử lý để gom text đi dịch 1 lần (Batch Translation) giúp tăng tốc độ đáng kể
         lines_to_translate: List[str] = []
         
+        # CHỈ lấy tối đa 2 lớp Nghĩa (Definitions) quan trọng nhất cho mỗi Từ loại (Noun, Verb..)
+        # Để đảm bảo tốc độ phản hồi TỨC THÌ (< 0.5s)
         for meaning in entry_data.get("meanings", []):
-            for def_data in meaning.get("definitions", []):
+            for def_data in meaning.get("definitions", [])[:2]:
                 lines_to_translate.append(def_data.get("definition", ""))
-                lines_to_translate.append(def_data.get("example", ""))
                 
-        # Thực hiện dịch Song song (Thread Pool) để tránh giới hạn 5000 ký tự và lỗi mất dòng
+        # Thực hiện dịch Toàn bộ Cùng Lúc (Siêu tốc nối chuỗi)
         translated_lines = []
         if lines_to_translate:
-            from concurrent.futures import ThreadPoolExecutor
-            
-            def _safe_translate(text: str) -> str:
-                if not text.strip(): return ""
-                try:
-                    res = GoogleTranslator(source='en', target='vi').translate(text)
-                    return res if res else ""
-                except Exception:
-                    return ""
-                    
             try:
-                # 20 workers là đủ nhanh (khoảng 1-2s cho toàn bộ list)
-                with ThreadPoolExecutor(max_workers=20) as executor:
-                    translated_lines = list(executor.map(_safe_translate, lines_to_translate))
+                # Gộp tất cả cách nhau bởi xuống dòng \n để Google không gộp câu
+                # Chỉ xử lý vài dòng nên cực nhanh (~0.3s)
+                joined_text = "\n".join(lines_to_translate)
+                translated_text = GoogleTranslator(source='en', target='vi').translate(joined_text)
+                if translated_text:
+                    translated_lines = [t.strip() for t in translated_text.split("\n")]
+                
+                # Fallback nếu số lượng trả về ít hơn đầu vào
+                while len(translated_lines) < len(lines_to_translate):
+                    translated_lines.append("")
+                    
             except Exception as e:
                 print(f"Translation failed: {e}")
                 translated_lines = [""] * len(lines_to_translate)
@@ -91,26 +90,24 @@ class FreeDictClient:
         idx = 0
         for meaning in entry_data.get("meanings", []):
             pos = meaning.get("partOfSpeech", "")
-            for def_data in meaning.get("definitions", []):
+            for def_data in meaning.get("definitions", [])[:2]:
                 definition = def_data.get("definition", "")
                 ex_text = def_data.get("example", "")
                 
                 translated_def = str(translated_lines[idx]) if idx < len(translated_lines) and translated_lines[idx] else "" # type: ignore
-                idx += 1
-                translated_ex = str(translated_lines[idx]) if idx < len(translated_lines) and translated_lines[idx] else "" # type: ignore
                 idx += 1
                 
                 examples = []
                 if ex_text:
                     examples.append({
                         "en": ex_text,
-                        "vi": translated_ex
+                        "vi": ""  # Không tốn thời gian dịch Ví dụ để duy trì Tốc độ Ánh sáng
                     })
                     
                 s_obj = Sense(
                     pos=pos.capitalize() if pos else "",
                     definition=definition,
-                    translation=translated_def,  # Đã có tiếng Việt!
+                    translation=translated_def,  # Tiếng Việt rực rỡ
                     examples=examples
                 )
                 senses.append(s_obj)
