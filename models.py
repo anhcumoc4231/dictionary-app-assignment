@@ -44,6 +44,7 @@ class LexicalEntry:
     uk_ipa: str = ""
     us_audio: str = "" # URL to mp3/ogg
     uk_audio: str = "" # URL to mp3/ogg
+    short_translation: str = ""
     senses: List[Sense] = field(default_factory=list)
     source: str = "Cambridge" # Tag for debugging
 

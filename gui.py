@@ -219,9 +219,11 @@ class DictionaryUI:
         # Tags definition
         self._result.tag_configure("word", font=(FONT_FAMILY, 26, "bold"), foreground=C["text_main"])  # type: ignore
         self._result.tag_configure("phonetic", font=("Georgia", 14, "italic"), foreground=C["gold"])  # type: ignore
+        self._result.tag_configure("ipa", font=("Georgia", 14, "italic"), foreground=C["gold"]) # Added for ipa
         self._result.tag_configure("wclass", font=(FONT_FAMILY, 12, "bold", "italic"), foreground=C["accent"])  # type: ignore
         self._result.tag_configure("section", font=(FONT_FAMILY, 11, "bold"), foreground=C["accent"])  # type: ignore
-        self._result.tag_configure("meaning", font=(FONT_FAMILY, 13, "bold"), foreground=C["text_main"])  # type: ignore
+        self._result.tag_configure("short_meaning", font=(FONT_FAMILY, 14, "bold"), foreground=C["green"], spacing1=4, spacing3=4)
+        self._result.tag_configure("meaning", font=(FONT_FAMILY, 11, "bold"), foreground=C["gold"], spacing1=4)  # type: ignore
         self._result.tag_configure("index", font=(FONT_FAMILY, 13, "bold"), foreground=C["gold"])  # type: ignore
         self._result.tag_configure("ex_en", font=(FONT_FAMILY, 11, "italic"), foreground=C["text_example"])  # type: ignore
         self._result.tag_configure("ex_vi", font=(FONT_FAMILY, 11), foreground=C["text_dim"])  # type: ignore
@@ -382,11 +384,16 @@ class DictionaryUI:
         # Word Header
         self._write(f"  {entry.word.upper()}\n", "word")
         
-        if getattr(entry, "us_ipa", ""):
-            self._write(f"   US: {entry.us_ipa} ", "phonetic")
-        if getattr(entry, "uk_ipa", ""):
-            self._write(f"   UK: {entry.uk_ipa} ", "phonetic")
-        self._write("\n")
+        if entry.uk_ipa or entry.us_ipa:
+            ipa = entry.uk_ipa or entry.us_ipa
+            self._write(f"  {ipa}\n", "ipa")
+            
+        # KẾT QUẢ "MỲ ĂN LIỀN" - Dịch trực tiếp từ vựng
+        short_trans = getattr(entry, "short_translation", "")
+        if short_trans:
+            self._write(f"  {short_trans}\n", "short_meaning")
+            
+        self._write("\n", "text_main")
         
         if getattr(entry, "source", ""):
             self._write(f"   ⚡ Chế độ: {entry.source}\n", "hint")

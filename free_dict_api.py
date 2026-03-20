@@ -59,7 +59,8 @@ class FreeDictClient:
         senses = []
         
         # Tiền xử lý để gom text đi dịch 1 lần (Batch Translation) giúp tăng tốc độ đáng kể
-        lines_to_translate: List[str] = []
+        # PHẦN TỬ ĐẦU TIÊN CỦA MẢNG CHÍNH LÀ TỪ VỰNG TÌM KIẾM ĐỂ LẤY NGHĨA "MỲ ĂN LIỀN"
+        lines_to_translate: List[str] = [query_word]
         
         # CHỈ lấy tối đa 2 lớp Nghĩa (Definitions) quan trọng nhất cho mỗi Từ loại (Noun, Verb..)
         # Để đảm bảo tốc độ phản hồi TỨC THÌ (< 0.5s)
@@ -87,7 +88,9 @@ class FreeDictClient:
                 translated_lines = [""] * len(lines_to_translate)
 
         # Trích xuất lại từ mảng đã dịch
-        idx = 0
+        short_translation = str(translated_lines[0]).title() if translated_lines and translated_lines[0] else ""
+        idx = 1
+        
         for meaning in entry_data.get("meanings", []):
             pos = meaning.get("partOfSpeech", "")
             for def_data in meaning.get("definitions", [])[:2]:
@@ -118,6 +121,7 @@ class FreeDictClient:
             uk_audio=uk_audio,
             us_ipa=us_ipa,
             uk_ipa=uk_ipa,
+            short_translation=short_translation, # Cập nhật kết quả Mỳ Ăn Liền
             senses=senses,
             source="Free Dictionary API"
         )
