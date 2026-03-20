@@ -1,30 +1,51 @@
 """
 models.py - Domain Entity / Data Transfer Object (DTO)
-Principle: Single Responsibility - represents one dictionary entry.
+Principle: Single Responsibility - represents one dictionary entry from Cambridge API.
 """
 
 import json
 from dataclasses import dataclass, field
-from typing import List, Tuple
+from typing import List, Dict, Any
+
+
+@dataclass
+class Sense:
+    """Represents a specific meaning and part of speech of a word."""
+    pos: str               # e.g., 'noun', 'verb'
+    definition: str        # e.g., 'a financial institution'
+    translation: str       # e.g., 'ngân hàng'
+    examples: List[Dict[str, str]] = field(default_factory=list) # [{'en': '...', 'vi': '...'}]
+
+    def to_dict(self) -> dict:
+        return {
+            "pos": self.pos,
+            "definition": self.definition,
+            "translation": self.translation,
+            "examples": self.examples
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "Sense":
+        return cls(
+            pos=str(data.get("pos", "")),
+            definition=str(data.get("definition", "")),
+            translation=str(data.get("translation", "")),
+            examples=list(data.get("examples", []))
+        )
 
 
 @dataclass
 class LexicalEntry:
     """
-    Encapsulates all linguistic data for a single English word.
-
-    Attributes:
-        word        : The English keyword (lowercase, stripped).
-        meanings    : List of Vietnamese definitions.
-        phonetic    : IPA pronunciation string, e.g. '/aepel/'.
-        word_class  : Part of speech, e.g. 'noun', 'verb', 'adjective'.
-        examples    : List of (english_sentence, vietnamese_sentence) pairs.
+    Encapsulates linguistic data for a single English word based on Cambridge API format.
     """
     word: str
-    meanings: List[str] = field(default_factory=list)
-    phonetic: str = ""
-    word_class: str = ""
-    examples: List[Tuple[str, str]] = field(default_factory=list)
+    us_ipa: str = ""
+    uk_ipa: str = ""
+    us_audio: str = "" # URL to mp3/ogg
+    uk_audio: str = "" # URL to mp3/ogg
+    senses: List[Sense] = field(default_factory=list)
+    source: str = "Cambridge" # Tag for debugging
 
     # ------------------------------------------------------------------
     # Serialization helpers
@@ -33,11 +54,13 @@ class LexicalEntry:
     def to_json(self) -> str:
         """Serialize to a compact JSON string (UTF-8 safe)."""
         data = {
-            "word":       self.word,
-            "meanings":   self.meanings,
-            "phonetic":   self.phonetic,
-            "word_class": self.word_class,
-            "examples":   self.examples,
+            "word": self.word,
+            "us_ipa": self.us_ipa,
+            "uk_ipa": self.uk_ipa,
+            "us_audio": self.us_audio,
+            "uk_audio": self.uk_audio,
+            "senses": [s.to_dict() for s in self.senses],
+            "source": self.source
         }
         return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
 
@@ -49,18 +72,17 @@ class LexicalEntry:
     def from_json(cls, json_str: str) -> "LexicalEntry":
         """Deserialize from a JSON string."""
         data = json.loads(json_str)
-        examples_raw = data.get("examples", [])
-        # Normalize: each item should be a (str, str) tuple
-        examples: List[Tuple[str, str]] = []
-        for ex in examples_raw:
-            if isinstance(ex, (list, tuple)) and len(ex) >= 2:
-                examples.append((str(ex[0]), str(ex[1])))
+        senses_raw = data.get("senses", [])
+        senses = [Sense.from_dict(s) for s in senses_raw if isinstance(s, dict)]
+        
         return cls(
             word=str(data.get("word", "")),
-            meanings=[str(m) for m in data.get("meanings", [])],
-            phonetic=str(data.get("phonetic", "")),
-            word_class=str(data.get("word_class", "")),
-            examples=examples,
+            us_ipa=str(data.get("us_ipa", "")),
+            uk_ipa=str(data.get("uk_ipa", "")),
+            us_audio=str(data.get("us_audio", "")),
+            uk_audio=str(data.get("uk_audio", "")),
+            senses=senses,
+            source=str(data.get("source", "Local Cache"))
         )
 
     @classmethod
@@ -70,6 +92,6 @@ class LexicalEntry:
 
     def __repr__(self) -> str:
         return (
-            f"LexicalEntry(word={self.word!r}, "
-            f"meanings={self.meanings}, phonetic={self.phonetic!r})"
+            f"LexicalEntry('{self.word}', "
+            f"us_ipa='{self.us_ipa}', senses_count={len(self.senses)})"
         )
