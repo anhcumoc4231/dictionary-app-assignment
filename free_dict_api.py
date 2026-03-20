@@ -66,19 +66,23 @@ class FreeDictClient:
                 lines_to_translate.append(def_data.get("definition", ""))
                 lines_to_translate.append(def_data.get("example", ""))
                 
-        # Thực hiện dịch Toàn bộ Cùng Lúc (Super Fast ~1s)
+        # Thực hiện dịch Song song (Thread Pool) để tránh giới hạn 5000 ký tự và lỗi mất dòng
         translated_lines = []
         if lines_to_translate:
-            try:
-                # Gộp tất cả cách nhau bởi xuống dòng \n để Google không gộp câu
-                joined_text = "\n".join(lines_to_translate)
-                translated_text = GoogleTranslator(source='en', target='vi').translate(joined_text)
-                translated_lines = [t.strip() for t in translated_text.split("\n")]
-                
-                # Fallback nếu số lượng trả về ít hơn đầu vào do lỗi Google bỏ dấu \n
-                while len(translated_lines) < len(lines_to_translate):
-                    translated_lines.append("")
+            from concurrent.futures import ThreadPoolExecutor
+            
+            def _safe_translate(text: str) -> str:
+                if not text.strip(): return ""
+                try:
+                    res = GoogleTranslator(source='en', target='vi').translate(text)
+                    return res if res else ""
+                except Exception:
+                    return ""
                     
+            try:
+                # 20 workers là đủ nhanh (khoảng 1-2s cho toàn bộ list)
+                with ThreadPoolExecutor(max_workers=20) as executor:
+                    translated_lines = list(executor.map(_safe_translate, lines_to_translate))
             except Exception as e:
                 print(f"Translation failed: {e}")
                 translated_lines = [""] * len(lines_to_translate)
