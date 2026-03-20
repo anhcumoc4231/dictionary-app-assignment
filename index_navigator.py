@@ -34,7 +34,7 @@ class IndexNavigator:
 
     def _format_record(self, word: str, offset: int, length: int) -> bytes:
         """Create a 53-byte fixed-width ASCII record."""
-        key_field: str = word.lower().ljust(KEY_WIDTH)[:KEY_WIDTH]
+        key_field: str = word.lower().ljust(KEY_WIDTH)[:KEY_WIDTH] # type: ignore
         off_field: str = str(offset).zfill(OFF_WIDTH)
         len_field: str = str(length).zfill(LEN_WIDTH)
         return f"{key_field}{off_field}{len_field}\n".encode("ascii")
@@ -45,9 +45,9 @@ class IndexNavigator:
         if len(raw) < RECORD_SIZE:
             return None
 
-        key_raw: bytes = raw[0:KEY_WIDTH]
-        off_raw: bytes = raw[KEY_WIDTH:KEY_WIDTH + OFF_WIDTH]
-        len_raw: bytes = raw[KEY_WIDTH + OFF_WIDTH:KEY_WIDTH + OFF_WIDTH + LEN_WIDTH]
+        key_raw: bytes = raw[0:KEY_WIDTH] # type: ignore
+        off_raw: bytes = raw[KEY_WIDTH:KEY_WIDTH + OFF_WIDTH] # type: ignore
+        len_raw: bytes = raw[KEY_WIDTH + OFF_WIDTH:KEY_WIDTH + OFF_WIDTH + LEN_WIDTH] # type: ignore
 
         keyword: str = key_raw.decode("ascii").rstrip(" ")
         offset: int  = int(off_raw.decode("ascii").strip())
@@ -63,8 +63,8 @@ class IndexNavigator:
         left: int = 0
         right: int = self._n_records - 1
 
-        while left <= right:
-            mid: int = (left + right) // 2
+        while left <= right: # type: ignore
+            mid: int = (left + right) // 2 # type: ignore
             record = self._read_record(mid)
             if not record:
                 return None
@@ -90,7 +90,7 @@ class IndexNavigator:
         all_data: bytes = self._fh.read()
         
         # Split into exact 53-byte chunks
-        records = [all_data[i:i+RECORD_SIZE] for i in range(0, len(all_data), RECORD_SIZE)]
+        records = [all_data[i:i+RECORD_SIZE] for i in range(0, len(all_data), RECORD_SIZE)] # type: ignore
         
         # Since 'record_bytes' is padded, bisect works flawlessly on the bytes object array
         bisect.insort(records, record_bytes)

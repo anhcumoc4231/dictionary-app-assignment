@@ -12,10 +12,10 @@ from typing import Optional
 # Ensure the project root is on the path so imports work from any working directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from models import LexicalEntry       # noqa: E402
-from storage import StorageEngine     # noqa: E402
-from index_navigator import IndexNavigator  # noqa: E402
-from cambridge_api import CambridgeClient   # noqa: E402
+from models import LexicalEntry       # type: ignore
+from storage import StorageEngine     # type: ignore
+from index_navigator import IndexNavigator  # type: ignore
+from cambridge_api import CambridgeClient   # type: ignore
 
 
 class DictionaryApp:

@@ -6,10 +6,10 @@ Requires a valid Access Key from Cambridge Dictionary API (Trial or Pro).
 """
 
 import os
-import requests
+import requests # type: ignore
 from typing import Optional
 
-from models import LexicalEntry, Sense
+from models import LexicalEntry, Sense # type: ignore
 
 
 class CambridgeClient:

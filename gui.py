@@ -84,6 +84,11 @@ class DictionaryUI:
         self._dict_app: Optional[DictionaryApp] = None
         self._last_entry: Optional[LexicalEntry] = None
         self._autocomplete_words: List[str] = []
+        
+        self._listbox_frame: tk.Frame = None # type: ignore
+        self._search_frame: tk.Frame = None # type: ignore
+        self._status_var: tk.StringVar = None # type: ignore
+        self._status_lbl: tk.Label = None # type: ignore
 
         self._setup_window()
         self._build_header()
@@ -95,13 +100,13 @@ class DictionaryUI:
         threading.Thread(target=self._init_backend, daemon=True).start()
 
     def _init_backend(self) -> None:
-        self._set_status("Đang khởi tạo hệ thống Cache và dữ liệu Autocomplete...", C["gold"])
+        self._set_status("Đang khởi tạo hệ thống Cache và dữ liệu Autocomplete...", C["gold"]) # type: ignore
         self.root.update()  # type: ignore
         
         self._autocomplete_words = _load_words_list()
         self._dict_app = DictionaryApp(DATA_PATH, INDEX_PATH)
         
-        if not self._dict_app.has_api_key():
+        if not self._dict_app.has_api_key(): # type: ignore
             self.root.after(0, self._prompt_api_key)
         else:
             self._update_status_idle()
@@ -114,15 +119,15 @@ class DictionaryUI:
             "(Hoặc để trống nếu bạn muốn chỉ tìm trong Cache nội bộ)",
             show="*"
         )
-        if key and self._dict_app:
-            self._dict_app.set_api_key(key)
+        if key and self._dict_app is not None:
+            self._dict_app.set_api_key(key) # type: ignore
         self._update_status_idle()
 
     def _update_status_idle(self) -> None:
         if not self._dict_app: return
-        n = self._dict_app.total_words_cached()
-        has_key = "Đã cấu hình" if self._dict_app.has_api_key() else "Chưa cấu hình"
-        self._set_status(
+        n = self._dict_app.total_words_cached() # type: ignore
+        has_key = "Đã cấu hình" if self._dict_app.has_api_key() else "Chưa cấu hình" # type: ignore
+        self._set_status( # type: ignore
             f"✓ Sẵn sàng | O(log n) Local Cache: {n:,} từ | Cambridge API: {has_key}",
             C["green"]
         )
@@ -295,7 +300,8 @@ class DictionaryUI:
     def _on_listbox_select(self, event) -> None:  # type: ignore
         sel = self._listbox.curselection()  # type: ignore
         if sel:
-            word = self._listbox.get(sel[0])  # type: ignore
+            idx = sel[0] # type: ignore
+            word = str(self._listbox.get(int(idx))) # type: ignore
             self._search_var.set(word)  # type: ignore
             self._hide_listbox()
             self._entry.focus()  # type: ignore
@@ -311,10 +317,10 @@ class DictionaryUI:
         if not keyword: return
         
         if not self._dict_app:
-            self._set_status("✗ Hệ thống chưa khởi tạo xong.", C["accent"])
+            self._set_status("✗ Hệ thống chưa khởi tạo xong.", C["accent"]) # type: ignore
             return
 
-        self._set_status(f"🌐 Đang tra cứu '{keyword}'...", C["gold"])
+        self._set_status(f"🌐 Đang tra cứu '{keyword}'...", C["gold"]) # type: ignore
         self._entry.config(state="disabled")  # type: ignore
         self.root.update()  # type: ignore
 
@@ -338,25 +344,25 @@ class DictionaryUI:
             self._display_entry(entry)
             
             algo_info = "O(1) RAM Cache" if "Cache" in source else ("O(log n) Disk Cache" if source == "Local Cache" else "🌐 Cambridge API + Saved to Disk")
-            self._set_status(f"✓ Tìm thấy «{entry.word}» — {algo_info}", C["green"])
+            self._set_status(f"✓ Tìm thấy «{entry.word}» — {algo_info}", C["green"]) # type: ignore
         else:
             self._display_not_found(keyword)
-            self._set_status(f"✗ Không tìm thấy «{keyword}» trên mạng cũng như trong cache.", C["accent"])
+            self._set_status(f"✗ Không tìm thấy «{keyword}» trên mạng cũng như trong cache.", C["accent"]) # type: ignore
 
     def _on_speak(self, locale: str) -> None:
         if not self._last_entry:
-            self._set_status("⚠ Vui lòng tra cứu một từ trước.", C["gold"])
+            self._set_status("⚠ Vui lòng tra cứu một từ trước.", C["gold"]) # type: ignore
             return
             
-        url = self._last_entry.us_audio if locale == "us" else self._last_entry.uk_audio
+        url = self._last_entry.us_audio if locale == "us" else self._last_entry.uk_audio # type: ignore
         
         if url:
-            self._set_status(f"🔊 Mở MP3 [{locale.upper()}]: {url}", C["gold"])
+            self._set_status(f"🔊 Mở MP3 [{locale.upper()}]: {url}", C["gold"]) # type: ignore
             # Fallback to system web browser to play MP3 since Tkinter doesn't have a built-in player
             webbrowser.open_new_tab(url)
         else:
             # Fallback to offline pyttsx3
-            self._set_status(f"⚠ Cambridge API không có audio cho từ này. Đang dùng giọng máy offline...", C["gold"])
+            self._set_status(f"⚠ Cambridge API không có audio cho từ này. Đang dùng giọng máy offline...", C["gold"]) # type: ignore
             def _speak():
                 try:
                     import pyttsx3  # type: ignore

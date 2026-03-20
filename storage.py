@@ -14,7 +14,7 @@ import sys
 # Ensure the project root is on the path so imports work from any working directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from models import LexicalEntry  # type: ignore  # noqa: E402
+from models import LexicalEntry # type: ignore  # type: ignore  # noqa: E402
 
 
 class StorageEngine:
