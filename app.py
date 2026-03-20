@@ -1,12 +1,15 @@
 """
-app.py - Facade Layer (DictionaryApp)
-Principle: Coordinates IndexNavigator, StorageEngine, and Cambridge API.
-Provides a clean, high-level API consumed by the GUI layer.
+app.py - Lớp Vỏ Bọc (DictionaryApp)
+=====================================
+Điều phối việc Tra Cứu (Lookup).
+- Ưu tiên #1: O(1) qua LRU RAM Cache.
+- Ưu tiên #2: O(log n) qua ổ đĩa cứng (index.data + meaning.data).
+- Ưu tiên #3: Mất mạng? Ra ngoài gọi Free Dictionary API, ghi lại kết quả vào ổ đĩa.
 """
 
 import os
 import sys
-import functools
+from functools import lru_cache
 from typing import Optional
 
 # Ensure the project root is on the path so imports work from any working directory
@@ -15,109 +18,53 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from models import LexicalEntry       # type: ignore
 from storage import StorageEngine     # type: ignore
 from index_navigator import IndexNavigator  # type: ignore
-from cambridge_api import CambridgeClient   # type: ignore
+from free_dict_api import FreeDictClient   # type: ignore
 
 
 class DictionaryApp:
-    """
-    Facade that wires together local storage and the Cambridge online API.
-    
-    Architecture:
-      Local RAM Cache -> Local Disk Binary Search -> Online API -> Caches to Disk
-    """
-
-    def __init__(self, data_path: str, index_path: str, api_key: str = "") -> None:
+    def __init__(self, data_path: str, index_path: str) -> None:
+        # 1. Ổ đĩa: Storage Engine (đọc ý nghĩa - O(1) direct access)
         self._storage = StorageEngine(data_path)
-        self._index   = IndexNavigator(index_path)
-        self._cambridge = CambridgeClient(api_key=api_key)
+        
+        # 2. Ổ đĩa: Index Navigator (tìm kiếm nhị phân - O(log n))
+        self._index = IndexNavigator(index_path)
 
-        self._lookup_cached = functools.lru_cache(maxsize=256)(self._lookup)
+        # 3. Free Dictionary API (Tự do, không giới hạn)
+        self._freedict = FreeDictClient()
+        
+        # In-memory RAM cache function
+        self._lru_cache = lru_cache(maxsize=1000)(self._lookup)
 
-    def set_api_key(self, api_key: str) -> None:
-        self._cambridge.set_key(api_key)
+    def total_words_cached(self) -> int:
+        return self._index.total_records()
 
-    def has_api_key(self) -> bool:
-        return self._cambridge.has_key()
-
-    # ------------------------------------------------------------------
-    # Core lookup (uncached) - called by the cached wrapper below
-    # ------------------------------------------------------------------
+    def find_word(self, keyword: str) -> Optional[LexicalEntry]:
+        """ Public method có bọc lru_cache để đảm bảo lần tra lại lần 3+ là O(1) RAM. """
+        keyword = keyword.strip().lower()
+        if not keyword:
+            return None
+        return self._lru_cache(keyword)
 
     def _lookup(self, keyword: str) -> Optional[LexicalEntry]:
-        """
-        Internal lookup:
-        1. Binary-search the local index (super fast O(log n)).
-        2. If missing, query Cambridge API.
-        3. If found locally, return.
-        4. If found via API, append to meaning.data and index.data, then return.
-        """
-        # Step 1: Check Local Disk index
+        """ Logic tìm kiếm nội bộ: HDD -> API -> Save to HDD """
+        # 1. Thử tìm trong đĩa cứng (O(log n))
         coords = self._index.find(keyword)
         if coords is not None:
             offset, length = coords
             entry = self._storage.read_entry(offset, length)
             entry.source = "Local Cache"  # Tag it to show in UI
             return entry
-
-        # Step 2: Fallback to Online API
-        if not self.has_api_key():
-            print("[App] Không có sẵn trên máy và chưa cấu hình Cambridge API Key.")
-            return None
-
-        # Fetch from the internet
-        entry = self._cambridge.fetch_word(keyword)
-        
-        # Step 3: Write to local disk to preserve O(log n) next time
+            
+        # 2. Không có trong đĩa? Dùng Free Dictionary API
+        entry = self._freedict.fetch_word(keyword) # type: ignore
         if entry is not None:
+            # 3. Cache xuống đĩa để bảo tồn thuật toán
             offset, length = self._storage.append_entry(entry)
             self._index.insert_sorted(entry.word, offset, length)
-
-        return entry
-
-    # ------------------------------------------------------------------
-    # Public API
-    # ------------------------------------------------------------------
-
-    def find_word(self, keyword: str) -> Optional[LexicalEntry]:
-        """
-        Look up `keyword` in the dictionary. First call checks disk or API,
-        repeat calls pull instantly from RAM cache.
-        """
-        keyword = keyword.lower().strip()
-        if not keyword:
-            return None
-        return self._lookup_cached(keyword)
-
-    def total_words_cached(self) -> int:
-        """Return the number of entries currently cached on disk."""
-        return self._index.total_records()
-
-    def all_keywords_cached(self) -> list:
-        """Return a list of all locally cached keywords."""
-        return self._index.all_keywords()
-
-    def clear_cache(self) -> None:
-        """Invalidate the LRU RAM cache."""
-        self._lookup_cached.cache_clear()
-
-    # ------------------------------------------------------------------
-    # Lifecycle
-    # ------------------------------------------------------------------
+            return entry
+            
+        return None
 
     def close(self) -> None:
-        """Close all file handles gracefully."""
-        self._storage.close()
         self._index.close()
-
-    def __enter__(self) -> "DictionaryApp":
-        return self
-
-    def __exit__(self, exc_type: object, exc_val: object, exc_tb: object) -> None:
-        self.close()
-
-    def __repr__(self) -> str:
-        return (
-            f"DictionaryApp("
-            f"cached={self.total_words_cached()}, "
-            f"ram_lru={self._lookup_cached.cache_info()})"
-        )
+        self._storage.close()

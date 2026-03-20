@@ -105,30 +105,13 @@ class DictionaryUI:
         
         self._autocomplete_words = _load_words_list()
         self._dict_app = DictionaryApp(DATA_PATH, INDEX_PATH)
-        
-        if not self._dict_app.has_api_key(): # type: ignore
-            self.root.after(0, self._prompt_api_key)
-        else:
-            self._update_status_idle()
-
-    def _prompt_api_key(self) -> None:
-        key = simpledialog.askstring(  # type: ignore
-            "Cambridge API Key",
-            "Ứng dụng chuyển sang kiến trúc Hybrid (O(log n) Cache + Cambridge API).\n\n"
-            "Vui lòng nhập Cambridge Dictionary API 'Access Key' của bạn:\n"
-            "(Hoặc để trống nếu bạn muốn chỉ tìm trong Cache nội bộ)",
-            show="*"
-        )
-        if key and self._dict_app is not None:
-            self._dict_app.set_api_key(key) # type: ignore
         self._update_status_idle()
 
     def _update_status_idle(self) -> None:
         if not self._dict_app: return
         n = self._dict_app.total_words_cached() # type: ignore
-        has_key = "Đã cấu hình" if self._dict_app.has_api_key() else "Chưa cấu hình" # type: ignore
         self._set_status( # type: ignore
-            f"✓ Sẵn sàng | O(log n) Local Cache: {n:,} từ | Cambridge API: {has_key}",
+            f"✓ Sẵn sàng | O(log n) Local Cache: {n:,} từ | Free Dictionary API: Hoạt động",
             C["green"]
         )
 
@@ -137,7 +120,7 @@ class DictionaryUI:
     # ------------------------------------------------------------------
 
     def _setup_window(self) -> None:
-        self.root.title("📖 Từ Điển Anh-Việt — Hybrid Cambridge Architecture")  # type: ignore
+        self.root.title("📖 Từ Điển Anh-Việt — Hybrid FreeDict Architecture")  # type: ignore
         self.root.configure(bg=C["bg"])  # type: ignore
         self.root.geometry("860x720")  # type: ignore
         self.root.minsize(700, 520)  # type: ignore
@@ -156,15 +139,14 @@ class DictionaryUI:
         ).pack()
 
         tk.Label(  # type: ignore
-            header, text="Cambridge API  ·  Local O(log n) Cache  ·  Autocomplete",
+            header, text="Free Dictionary API  ·  Local O(log n) Cache  ·  Autocomplete",
             font=(FONT_FAMILY, 10), bg=C["card"], fg=C["text_dim"]
         ).pack(pady=(2, 0))
 
-        # API settings button
+        # API settings button (disabled because it's free now)
         tk.Button(  # type: ignore
-            header, text="⚙️ Cấu hình API", font=(FONT_FAMILY, 9),
-            bg=C["card"], fg=C["gold"], bd=0, relief="flat", cursor="hand2",
-            command=self._prompt_api_key
+            header, text="🟢 API Miễn phí", font=(FONT_FAMILY, 9),
+            bg=C["card"], fg=C["green"], bd=0, relief="flat", cursor="arrow",
         ).place(relx=0.95, rely=0.5, anchor="e")
 
     def _build_search_bar(self) -> None:
@@ -257,6 +239,12 @@ class DictionaryUI:
         )
         self._status_lbl.pack(fill="x", side="bottom")  # type: ignore
 
+    def _set_status(self, message: str, color: str = "") -> None:
+        if hasattr(self, "_status_var") and self._status_var:
+            self._status_var.set(message) # type: ignore
+        if hasattr(self, "_status_lbl") and self._status_lbl and color:
+            self._status_lbl.configure(fg=color) # type: ignore
+
     # ------------------------------------------------------------------
     # Autocomplete Logic
     # ------------------------------------------------------------------
@@ -283,7 +271,7 @@ class DictionaryUI:
             return
             
         # Filter autocomplete matches
-        matches = [w for w in self._autocomplete_words if w.startswith(keyword)][:7]
+        matches = [w for w in self._autocomplete_words if w.startswith(keyword)][:7] # type: ignore
         if matches:
             self._listbox.delete(0, tk.END)  # type: ignore
             for m in matches:
@@ -300,9 +288,10 @@ class DictionaryUI:
     def _on_listbox_select(self, event) -> None:  # type: ignore
         sel = self._listbox.curselection()  # type: ignore
         if sel:
-            idx = sel[0] # type: ignore
-            word = str(self._listbox.get(int(idx))) # type: ignore
-            self._search_var.set(word)  # type: ignore
+            for idx in sel: # type: ignore
+                word = str(self._listbox.get(int(idx))) # type: ignore
+                self._search_var.set(word)  # type: ignore
+                break
             self._hide_listbox()
             self._entry.focus()  # type: ignore
             self._on_search()
@@ -343,7 +332,7 @@ class DictionaryUI:
             source = entry.source
             self._display_entry(entry)
             
-            algo_info = "O(1) RAM Cache" if "Cache" in source else ("O(log n) Disk Cache" if source == "Local Cache" else "🌐 Cambridge API + Saved to Disk")
+            algo_info = "O(1) RAM Cache" if "Cache" in source else ("O(log n) Disk Cache" if source == "Local Cache" else "🌐 Free Dictionary API + Saved to Disk")
             self._set_status(f"✓ Tìm thấy «{entry.word}» — {algo_info}", C["green"]) # type: ignore
         else:
             self._display_not_found(keyword)
@@ -362,7 +351,7 @@ class DictionaryUI:
             webbrowser.open_new_tab(url)
         else:
             # Fallback to offline pyttsx3
-            self._set_status(f"⚠ Cambridge API không có audio cho từ này. Đang dùng giọng máy offline...", C["gold"]) # type: ignore
+            self._set_status(f"⚠ Free Dictionary API không có audio cho từ này. Đang dùng giọng máy offline...", C["gold"]) # type: ignore
             def _speak():
                 try:
                     import pyttsx3  # type: ignore
@@ -444,9 +433,9 @@ class DictionaryUI:
         self._write("\n\n  Xin chào! Nhập từ tiếng Anh vào ô tìm kiếm.\n\n", "section")
         self._write(
             "  ⚡ Cập nhật MỚI: HYBRID ARCHITECTURE\n\n"
-            "  🌐 Online Cambridge API: Tự động tải từ mới mẻ nhất.\n"
+            "  🌐 Online Free Dict API: Tra cứu nhanh chóng, miễn phí 100%.\n"
             "  💾 O(log n) Disk Cache: Tự động lưu những từ đã tải xuống đĩa cứng.\n"
-            "  🎵 Cambridge Audio: Mở trực tiếp file MP3 bản xứ (US/UK).\n"
+            "  🎵 Native Audio: Mở trực tiếp file MP3 bản xứ (US/UK) (tuỳ thuộc API).\n"
             "  ⌨️ Autocomplete: Gợi ý nhanh 10,000 từ phổ thông khi bạn gõ.\n",
             "hint"
         )
