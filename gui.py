@@ -430,8 +430,8 @@ class DictionaryUI:
         self._write(f"\n\n  ✗ Không tìm thấy từ «{keyword}»\n\n", "not_found")
         self._write(
             "  Gợi ý:\n"
-            "  • Kiểm tra lại kết nối mạng (API Cambridge).\n"
-            "  • Truy cập Cấu hình API để điền đúng Access Key.\n",
+            "  • Dịch vụ Free Dictionary API không có bộ giải nghĩa cho từ khóa này.\n"
+            "  • Danh sách Gợi ý lấy từ kho 10.000 từ vựng để hỗ trợ gõ nhanh, nhưng có thể chứa Danh từ riêng (vd: niger, john) mà API không hỗ trợ tra cứu.\n",
             "hint"
         )
 
