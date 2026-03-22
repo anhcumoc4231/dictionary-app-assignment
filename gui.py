@@ -466,18 +466,22 @@ class DictionaryUI:
     # ------------------------------------------------------------------
 
     def _animate_typing(self, label: tk.Label, text: str, index: int = 0, on_complete: Optional[Callable[[], None]] = None) -> None: # type: ignore
-        if not label.winfo_exists(): return # Stop if widget destroyed
+        if not label.winfo_exists(): return 
         
-        # Supersonic speed: 2-3 chars per step
         step_size = 3 if len(text) > 50 else 2
         
-        if index <= len(text):
-            label.config(text=text[:index]) # type: ignore
-            self._scroll_to_bottom()
+        # Display index ensures we don't skip the last part
+        d_idx = min(index, len(text))
+        label.config(text=text[:d_idx]) # type: ignore
+        self._scroll_to_bottom()
+        
+        if index < len(text):
             self.root.after(1, self._animate_typing, label, text, index + step_size, on_complete) # type: ignore
-        elif on_complete:
-            # Minimal pause
-            self.root.after(5, on_complete) # type: ignore
+        else:
+            # Final safety check to make sure full text is shown
+            label.config(text=text) # type: ignore
+            if on_complete:
+                self.root.after(5, on_complete) # type: ignore
 
     def _bind_hover(self, widget: tk.Widget, normal_bg: str, hover_bg: str) -> None: # type: ignore
         widget.bind("<Enter>", lambda e: widget.config(bg=hover_bg)) # type: ignore
@@ -601,7 +605,7 @@ class DictionaryUI:
         # --- ANIMATION CHAIN ---
         def stage_4(): # Final: Senses
             if not bubble.winfo_exists(): return
-            tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=10)  # type: ignore
+            tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=12) # Lighter divider
             self._animate_senses_sequentially(bubble, entry, entry.senses)
 
         def stage_3(): # Green Translation

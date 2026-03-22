@@ -60,6 +60,7 @@ class LexicalEntry:
             "uk_ipa": self.uk_ipa,
             "us_audio": self.us_audio,
             "uk_audio": self.uk_audio,
+            "short_translation": self.short_translation,
             "senses": [s.to_dict() for s in self.senses],
             "source": self.source
         }
@@ -82,6 +83,7 @@ class LexicalEntry:
             uk_ipa=str(data.get("uk_ipa", "")),
             us_audio=str(data.get("us_audio", "")),
             uk_audio=str(data.get("uk_audio", "")),
+            short_translation=str(data.get("short_translation", "")),
             senses=senses,
             source=str(data.get("source", "Local Cache"))
         )
