@@ -73,7 +73,7 @@ def _load_words_list() -> List[str]:
 # ── Main GUI Class ─────────────────────────────────────────────────────────────
 class DictionaryUI:
     def __init__(self) -> None:
-        self.root = tk.Tk()
+        self.root = tk.Tk()  # type: ignore
         self.root.title("🤖 AI Dictionary — Từ Điển Anh-Việt")
         self.root.configure(bg=C["bg"])
         self.root.geometry("900x720")
@@ -81,7 +81,7 @@ class DictionaryUI:
 
         self._dict_app: Optional[DictionaryApp] = None
         self._autocomplete_words: List[str] = []
-        self._search_var = tk.StringVar()
+        self._search_var = tk.StringVar()  # type: ignore
 
         self._build_header()
         self._build_chat_area()
@@ -99,7 +99,7 @@ class DictionaryUI:
         self._autocomplete_words = _load_words_list()
         self._dict_app = DictionaryApp(DATA_PATH, INDEX_PATH)
         n = self._dict_app.total_words_cached() # type: ignore
-        self.root.after(0, lambda: self._add_ai_bubble(
+        self.root.after(0, lambda: self._add_ai_bubble(  # type: ignore
             f"✅ Hệ thống sẵn sàng!\n📦 Local Cache: **{n:,} từ** | 🌐 Free Dictionary API: Hoạt động"
         ))
 
@@ -243,7 +243,7 @@ class DictionaryUI:
         self._canvas.yview_scroll(int(-1 * (event.delta / 120)), "units") # type: ignore
 
     def _scroll_to_bottom(self) -> None:
-        self.root.update_idletasks()
+        self.root.update_idletasks()  # type: ignore
         self._canvas.yview_moveto(1.0) # type: ignore
 
     # ------------------------------------------------------------------
@@ -454,11 +454,11 @@ class DictionaryUI:
                 return
             entry = self._dict_app.find_word(keyword) # type: ignore
             # Remove the "loading" bubble
-            self.root.after(0, lambda: self._remove_last_ai_bubble())
+            self.root.after(0, lambda: self._remove_last_ai_bubble())  # type: ignore
             if entry:
-                self.root.after(0, lambda: self._add_result_bubble(entry))
+                self.root.after(0, lambda: self._add_result_bubble(entry))  # type: ignore
             else:
-                self.root.after(0, lambda: self._add_not_found_bubble(keyword))
+                self.root.after(0, lambda: self._add_not_found_bubble(keyword))  # type: ignore
 
         threading.Thread(target=_do_search, daemon=True).start()
 
@@ -500,11 +500,11 @@ class DictionaryUI:
         x = self._entry.winfo_rootx() - self.root.winfo_rootx() # type: ignore
         y = self._entry.winfo_rooty() - self.root.winfo_rooty() - 130 # type: ignore
         w = self._entry.winfo_width() # type: ignore
-        self._listbox_frame.place(x=x, y=y, width=w)
+        self._listbox_frame.place(x=x, y=y, width=w)  # type: ignore
         self._listbox_frame.lift() # type: ignore
 
     def _hide_listbox(self) -> None:
-        self._listbox_frame.place_forget()
+        self._listbox_frame.place_forget()  # type: ignore
 
     def _on_key_release(self, event) -> None: # type: ignore
         if event.keysym in ("Return", "Down", "Up", "Left", "Right"):
@@ -523,7 +523,7 @@ class DictionaryUI:
             self._hide_listbox()
 
     def _on_arrow_down(self, event) -> None: # type: ignore
-        if self._listbox_frame.winfo_ismapped():
+        if self._listbox_frame.winfo_ismapped():  # type: ignore
             self._listbox.focus() # type: ignore
             self._listbox.selection_set(0) # type: ignore
 
@@ -543,7 +543,7 @@ class DictionaryUI:
     # ------------------------------------------------------------------
 
     def run(self) -> None:
-        self.root.mainloop()
+        self.root.mainloop()  # type: ignore
 
 
 # ── Entry Point ───────────────────────────────────────────────────────────────
