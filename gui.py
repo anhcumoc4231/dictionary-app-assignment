@@ -600,6 +600,13 @@ class DictionaryUI:
 
         # 3. Short Translation (Green, Big)
         short = getattr(entry, "short_translation", "")
+        if not short and entry.senses:
+            # Fallback for old cache entries that were saved without short_translation
+            for s in entry.senses:
+                if s.translation:
+                    short = s.translation
+                    break
+        
         short_lbl = tk.Label(bubble, text="", font=(FONT_FAMILY, 18, "bold"), bg=C["bubble_ai"], fg=C["green"], wraplength=640, justify="left") # type: ignore
 
         # --- ANIMATION CHAIN ---
