@@ -89,12 +89,18 @@ class DictionaryUI:
         self._dict_app: Optional[DictionaryApp] = None
         self._autocomplete_words: List[str] = []
         self._search_var = tk.StringVar()  # type: ignore
+        self._last_entry: Optional[LexicalEntry] = None
 
-        self._build_header()
-        self._build_chat_area()
-        self._build_input_bar()
+        # Navigation State
+        self._current_page: Optional[str] = None
+        self._pages: dict[str, tk.Frame] = {} # type: ignore
+
+        # Main Layout Container
+        self._main_container = tk.Frame(self.root, bg=C["bg"]) # type: ignore
+        self._main_container.pack(fill="both", expand=True) # type: ignore
+
         self._build_menu()
-        self._welcome_message()
+        self.show_page("chat") # type: ignore
 
         # Init backend in background
         threading.Thread(target=self._init_backend, daemon=True).start()  # type: ignore
@@ -125,6 +131,37 @@ class DictionaryUI:
             self.root.after(0, lambda: self._add_result_bubble(entry))  # type: ignore
 
     # ------------------------------------------------------------------
+    # UI Navigation (SPA Style)
+    # ------------------------------------------------------------------
+
+    def show_page(self, page_id: str) -> None:
+        if self._current_page == page_id:
+            return
+
+        # Hide current page
+        if self._current_page and self._current_page in self._pages:
+            self._pages[self._current_page].pack_forget()  # type: ignore
+
+        # Create page if not exists
+        if page_id not in self._pages:
+            self._create_page(page_id)
+
+        # Show new page
+        self._pages[page_id].pack(fill="both", expand=True)
+        self._current_page = page_id
+
+    def _create_page(self, page_id: str) -> None:
+        frame = tk.Frame(self._main_container, bg=C["bg"]) # type: ignore
+        self._pages[page_id] = frame
+
+        if page_id == "chat":
+            self._build_chat_page(frame)
+        elif page_id == "bookmarks":
+            self._build_bookmarks_page(frame)
+        elif page_id == "wotd":
+            self._build_wotd_page(frame)
+
+    # ------------------------------------------------------------------
     # Menu Bar
     # ------------------------------------------------------------------
 
@@ -133,16 +170,17 @@ class DictionaryUI:
         
         # Menu: Hệ thống
         file_menu = tk.Menu(menubar, tearoff=0)  # type: ignore
-        file_menu.add_command(label="🗑 Xóa lịch sử chat", command=self._clear_chat)  # type: ignore
+        file_menu.add_command(label="🏠 Trang chủ (Chat)", command=lambda: self.show_page("chat"))  # type: ignore
         file_menu.add_separator()  # type: ignore
+        file_menu.add_command(label="🗑 Xóa lịch sử chat", command=self._clear_chat)  # type: ignore
         file_menu.add_command(label="❌ Thoát", command=self.root.quit)  # type: ignore
         menubar.add_cascade(label="Hệ thống", menu=file_menu)  # type: ignore
 
         # Menu: Công cụ
         tools_menu = tk.Menu(menubar, tearoff=0)  # type: ignore
-        tools_menu.add_command(label="🌟 Từ vựng mỗi ngày", command=self._show_word_of_the_day)  # type: ignore
+        tools_menu.add_command(label="🌟 Từ vựng mỗi ngày", command=lambda: self.show_page("wotd"))  # type: ignore
         tools_menu.add_separator()  # type: ignore
-        tools_menu.add_command(label="📖 Xem Sổ tay (Bookmarks)", command=self._menu_show_saved)  # type: ignore
+        tools_menu.add_command(label="📖 Xem Sổ tay (Bookmarks)", command=lambda: self.show_page("bookmarks"))  # type: ignore
         tools_menu.add_command(label="🗑 Xóa sạch Sổ tay", command=self._menu_clear_saved)  # type: ignore
         menubar.add_cascade(label="Công cụ", menu=tools_menu)  # type: ignore
 
@@ -154,16 +192,8 @@ class DictionaryUI:
         self.root.config(menu=menubar)  # type: ignore
 
     def _menu_show_saved(self) -> None:
-        _ensure_bookmarks()
-        with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
-            lines = [line.strip() for line in f if line.strip()]
-        if not lines:
-            self._add_ai_bubble("Sổ tay của bạn hiện đang trống! Hãy bấm nút ⭐ dưới mỗi từ để lưu lại nhé.")
-        else:
-            msg = "📖 **Sổ tay từ vựng của bạn:**\n\n"
-            for line in lines:
-                msg += f"- {line}\n"
-            self._add_ai_bubble(msg)
+        # This is now handled by show_page("bookmarks")
+        self.show_page("bookmarks")
 
     def _menu_clear_saved(self) -> None:
         if messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn xóa toàn bộ sổ tay vĩnh viễn?"): # type: ignore
@@ -171,16 +201,115 @@ class DictionaryUI:
             with open(BOOKMARKS_PATH, "w", encoding="utf-8") as f:
                 pass
             self._add_ai_bubble("🗑 Đã xóa sạch sổ tay!")
+            if self._current_page == "bookmarks":
+                self._build_bookmarks_page(self._pages["bookmarks"]) # Refresh page
 
     def _menu_about(self) -> None:
-        messagebox.showinfo("Thông tin", "🤖 AI Dictionary — Từ Điển Anh-Việt\nVersion 2.0 (Chatbot Style)") # type: ignore
+        messagebox.showinfo("Thông tin", "🤖 AI Dictionary — Từ Điển Anh-Việt\nVersion 3.0 (Multi-Page SPA)") # type: ignore
+
+    # ------------------------------------------------------------------
+    # Page Builders
+    # ------------------------------------------------------------------
+
+    def _build_chat_page(self, parent: tk.Frame) -> None: # type: ignore
+        self._build_header(parent)
+        self._build_chat_area(parent)
+        self._build_input_bar(parent)
+        self._welcome_message()
+
+    def _build_bookmarks_page(self, parent: tk.Frame) -> None: # type: ignore
+        # Clear existing
+        for widget in parent.winfo_children(): # type: ignore
+            widget.destroy() # type: ignore
+            
+        header = tk.Frame(parent, bg=C["header_bg"], pady=20) # type: ignore
+        header.pack(fill="x") # type: ignore
+        tk.Label(header, text="📖 SỔ TAY TỪ VỰNG", font=(FONT_FAMILY, 20, "bold"), bg=C["header_bg"], fg=C["gold"]).pack() # type: ignore
+        
+        container = tk.Frame(parent, bg=C["chat_bg"], padx=40, pady=20) # type: ignore
+        container.pack(fill="both", expand=True) # type: ignore
+        
+        _ensure_bookmarks()
+        with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip()]
+            
+        if not lines:
+            tk.Label(container, text="Sổ tay của bạn hiện đang trống.\nBấm nút ⭐ khi tra từ để lưu lại nhé!", # type: ignore
+                     font=(FONT_FAMILY, 12), bg=C["chat_bg"], fg=C["text_dim"]).pack(pady=50) # type: ignore
+        else:
+            # Scrollable list
+            canvas = tk.Canvas(container, bg=C["chat_bg"], highlightthickness=0) # type: ignore
+            scr = tk.Scrollbar(container, orient="vertical", command=canvas.yview) # type: ignore
+            list_frame = tk.Frame(canvas, bg=C["chat_bg"]) # type: ignore
+            
+            canvas.create_window((0, 0), window=list_frame, anchor="nw") # type: ignore
+            canvas.configure(yscrollcommand=scr.set) # type: ignore
+            
+            canvas.pack(side="left", fill="both", expand=True) # type: ignore
+            scr.pack(side="right", fill="y") # type: ignore
+            
+            def _on_scroll(e): canvas.configure(scrollregion=canvas.bbox("all")) # type: ignore
+            list_frame.bind("<Configure>", _on_scroll) # type: ignore
+            
+            for line in lines:
+                item = tk.Frame(list_frame, bg=C["bubble_ai"], pady=10, padx=15) # type: ignore
+                item.pack(fill="x", pady=5) # type: ignore
+                
+                parts = line.split(" - ", 1)
+                word = parts[0]
+                mean = parts[1] if len(parts) > 1 else ""
+                
+                tk.Label(item, text=word, font=(FONT_FAMILY, 14, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(side="left") # type: ignore
+                tk.Label(item, text=f": {mean}", font=(FONT_FAMILY, 11), bg=C["bubble_ai"], fg=C["green"]).pack(side="left", padx=10) # type: ignore
+                
+                # Delete button
+                def _del(w=word):
+                    with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
+                        rem = [l for l in f if not l.startswith(f"{w} -")]
+                    with open(BOOKMARKS_PATH, "w", encoding="utf-8") as f:
+                        f.writelines(rem)
+                    self._build_bookmarks_page(parent) # Refresh
+                
+                tk.Button(item, text="🗑", bg=C["bubble_ai"], fg=C["red"], bd=0, command=_del, cursor="hand2").pack(side="right") # type: ignore
+
+    def _build_wotd_page(self, parent: tk.Frame) -> None: # type: ignore
+        # Clear existing
+        for widget in parent.winfo_children(): # type: ignore
+            widget.destroy() # type: ignore
+            
+        header = tk.Frame(parent, bg=C["header_bg"], pady=20) # type: ignore
+        header.pack(fill="x") # type: ignore
+        tk.Label(header, text="💡 WORD OF THE DAY", font=(FONT_FAMILY, 20, "bold"), bg=C["header_bg"], fg=C["accent"]).pack() # type: ignore
+
+        if not self._autocomplete_words or not self._dict_app:
+             tk.Label(parent, text="Đang tải dữ liệu...", bg=C["bg"], fg=C["text_dim"]).pack(pady=40) # type: ignore
+             return
+
+        import random
+        word = random.choice(self._autocomplete_words)
+        
+        card = tk.Frame(parent, bg=C["bubble_ai"], padx=40, pady=40, bd=1, relief="solid") # type: ignore
+        card.place(relx=0.5, rely=0.5, anchor="center") # type: ignore
+        
+        tk.Label(card, text="TỪ VỰNG HÔM NAY", font=(FONT_FAMILY, 10, "bold"), bg=C["bubble_ai"], fg=C["accent"]).pack() # type: ignore
+        tk.Label(card, text=word.upper(), font=(FONT_FAMILY, 36, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(pady=10) # type: ignore
+        
+        entry = self._dict_app.find_word(word) # type: ignore
+        if entry and entry.short_translation:
+             tk.Label(card, text=entry.short_translation, font=(FONT_FAMILY, 18), bg=C["bubble_ai"], fg=C["green"], wraplength=400).pack() # type: ignore
+        
+        tk.Button(card, text="🔄 Đổi từ khác", font=(FONT_FAMILY, 10), bg=C["accent"], fg="white", 
+                  padx=20, pady=8, command=lambda: self._build_wotd_page(parent), cursor="hand2").pack(pady=30) # type: ignore
+        
+        tk.Button(parent, text="← Quay lại tra từ", font=(FONT_FAMILY, 10), bg=C["bg"], fg=C["text_dim"], 
+                  bd=0, command=lambda: self.show_page("chat"), cursor="hand2").pack(side="bottom", pady=20) # type: ignore
 
     # ------------------------------------------------------------------
     # Widget builders
     # ------------------------------------------------------------------
 
-    def _build_header(self) -> None:
-        header = tk.Frame(self.root, bg=C["header_bg"], pady=10) # type: ignore
+    def _build_header(self, parent: tk.Frame) -> None: # type: ignore
+        header = tk.Frame(parent, bg=C["header_bg"], pady=10) # type: ignore
         header.pack(fill="x", side="top")  # type: ignore
 
         tk.Label( # type: ignore
@@ -223,9 +352,9 @@ class DictionaryUI:
         # Separator
         tk.Frame(self.root, bg=C["bubble_border"], height=1).pack(fill="x") # type: ignore
 
-    def _build_chat_area(self) -> None:
+    def _build_chat_area(self, parent: tk.Frame) -> None: # type: ignore
         """Chat area: Canvas + Scrollbar để render bubble messages."""
-        container = tk.Frame(self.root, bg=C["chat_bg"]) # type: ignore
+        container = tk.Frame(parent, bg=C["chat_bg"]) # type: ignore
         container.pack(fill="both", expand=True, padx=0, pady=0)  # type: ignore
 
         # Scrollbar
@@ -250,16 +379,16 @@ class DictionaryUI:
         # Mouse wheel scroll
         self._canvas.bind_all("<MouseWheel>", self._on_mousewheel) # type: ignore
 
-    def _build_input_bar(self) -> None:
+    def _build_input_bar(self, parent: tk.Frame) -> None: # type: ignore
         """Bottom input bar with autocomplete."""
-        bar = tk.Frame(self.root, bg=C["input_bg"], pady=10) # type: ignore
+        bar = tk.Frame(parent, bg=C["input_bg"], pady=10) # type: ignore
         bar.pack(fill="x", side="bottom")  # type: ignore
 
         # Separator
-        tk.Frame(self.root, bg=C["input_border"], height=1).pack(fill="x", side="bottom") # type: ignore
+        tk.Frame(parent, bg=C["input_border"], height=1).pack(fill="x", side="bottom") # type: ignore
 
         # Autocomplete Listbox (floats above input)
-        self._listbox_frame = tk.Frame(self.root, bg=C["bubble_border"], bd=1, relief="solid") # type: ignore
+        self._listbox_frame = tk.Frame(parent, bg=C["bubble_border"], bd=1, relief="solid") # type: ignore
         self._listbox = tk.Listbox( # type: ignore
             self._listbox_frame,
             font=(FONT_FAMILY, 11), bg="#1A1A35", fg=C["text_main"],
@@ -638,6 +767,10 @@ class DictionaryUI:
             self._hide_listbox()
             self._entry.focus() # type: ignore
             self._on_search()
+
+    def _hide_listbox(self) -> None:
+        if self._listbox_frame.winfo_exists(): # type: ignore
+            self._listbox_frame.place_forget()  # type: ignore
 
     # ------------------------------------------------------------------
     # Run
