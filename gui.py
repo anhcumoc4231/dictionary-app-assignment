@@ -471,11 +471,11 @@ class DictionaryUI:
             label.config(text=text[:index]) # type: ignore
             self._scroll_to_bottom()
             # Dynamic speed: faster for long texts
-            delay = 8 if len(text) > 200 else 15
+            delay = 4 if len(text) > 200 else 8
             self.root.after(delay, self._animate_typing, label, text, index + 1, on_complete) # type: ignore
         elif on_complete:
             # Short pause before next line
-            self.root.after(100, on_complete) # type: ignore
+            self.root.after(50, on_complete) # type: ignore
 
     def _bind_hover(self, widget: tk.Widget, normal_bg: str, hover_bg: str) -> None: # type: ignore
         widget.bind("<Enter>", lambda e: widget.config(bg=hover_bg)) # type: ignore
@@ -510,7 +510,8 @@ class DictionaryUI:
         spacer = tk.Frame(row, bg=C["chat_bg"]) # type: ignore
         spacer.pack(side="left", expand=True)  # type: ignore
 
-        bubble = tk.Frame(row, bg=C["bubble_user"], padx=16, pady=10) # type: ignore
+        bubble = tk.Frame(row, bg=C["bubble_user"], padx=16, pady=10,
+                         highlightthickness=1, highlightbackground="#6D28D9") # type: ignore
         bubble.pack(side="right")  # type: ignore
 
         tk.Label( # type: ignore
@@ -574,7 +575,8 @@ class DictionaryUI:
         ipa = entry.uk_ipa or entry.us_ipa
         title_text = entry.word.lower()
         if ipa:
-            title_text += f" /{ipa}/"
+            clean_ipa = ipa.strip("/[] ")
+            title_text += f" /{clean_ipa}/"
 
         source = getattr(entry, "source", "") # Define early for scope
 
@@ -627,83 +629,6 @@ class DictionaryUI:
         # Start Chain
         self._animate_typing(title_lbl, title_text, on_complete=stage_2)
 
-        # TFlat Pos Map
-        pos_vi = {
-            "noun": "danh từ", "verb": "động từ", "adjective": "tính từ",
-            "adverb": "trạng từ", "pronoun": "đại từ", "preposition": "giới từ",
-            "conjunction": "liên từ", "interjection": "thán từ", "idiom": "thành ngữ"
-        }
-
-        # Render senses
-        current_pos = ""
-        for i, sense in enumerate(entry.senses):
-            pos_key = (sense.pos or "").lower()
-            if pos_key and pos_key != current_pos:
-                current_pos = pos_key
-                vi_pos = pos_vi.get(current_pos, current_pos)
-                tk.Label(  # type: ignore
-                    bubble, text=f"* {vi_pos}",
-                    font=(FONT_FAMILY, 12, "bold"),
-                    bg=C["bubble_ai"], fg="#5C9BD1"
-                ).pack(anchor="w", pady=(8, 2))  # type: ignore
-
-            # English definition (+ nghĩa tiếng Anh)
-            if sense.definition:
-                def_lbl = tk.Label(  # type: ignore
-                    bubble, text="",
-                    font=(FONT_FAMILY, 11),
-                    bg=C["bubble_ai"], fg=C["text_main"],
-                    wraplength=640, justify="left"
-                )
-                def_lbl.pack(anchor="w", padx=(10, 0))  # type: ignore
-                self._animate_typing(def_lbl, f"➤ {sense.definition}")
-
-            # Vietnamese meaning in parentheses (nghĩa tiếng Việt)
-            if sense.translation:
-                tr_lbl = tk.Label(  # type: ignore
-                    bubble, text="",
-                    font=(FONT_FAMILY, 10, "italic"),
-                    bg=C["bubble_ai"], fg="#A8B5C8",
-                    wraplength=640, justify="left"
-                )
-                tr_lbl.pack(anchor="w", padx=(25, 0))  # type: ignore
-                self._animate_typing(tr_lbl, f"({sense.translation})")
-
-            # Example (TFlat uses '=')
-            for ex in sense.examples:
-                en_ex = ex.get("en", "")
-                if en_ex:
-                    tk.Label(  # type: ignore
-                        bubble, text=f"= {en_ex}",
-                        font=(FONT_FAMILY, 10, "italic"),
-                        bg=C["bubble_ai"], fg=C["text_example"],
-                        wraplength=620, justify="left"
-                    ).pack(anchor="w", padx=(10, 0))  # type: ignore
-
-        # Button: Lưu vào Bookmark
-        if source != "Google Translate":
-            btn = tk.Button( # type: ignore
-                bubble, text="⭐ Lưu từ này",
-                font=(FONT_FAMILY, 9, "bold"),
-                bg="#2A2A4A", fg=C["gold"],
-                bd=0, relief="flat", padx=10, pady=4, cursor="hand2"
-            )
-            # Closure
-            def _save_word(b=btn, e=entry):
-                _ensure_bookmarks()
-                saved = False
-                with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
-                    if f"{e.word} -" in f.read():
-                        saved = True
-                if not saved:
-                    with open(BOOKMARKS_PATH, "a", encoding="utf-8") as f:
-                        f.write(f"{e.word} - {getattr(e, 'short_translation', '')}\n")  # type: ignore
-                b.config(text="✅ Đã lưu sổ tay", fg=C["green"])  # type: ignore
-            
-            btn.config(command=_save_word)  # type: ignore
-            btn.pack(anchor="e", pady=(10, 0)) # type: ignore
-
-        self._scroll_to_bottom()
         self._last_entry = entry
 
     def _add_not_found_bubble(self, keyword: str) -> None:
@@ -876,16 +801,42 @@ class DictionaryUI:
         def_lbl.pack(anchor="w", padx=(10, 0)) # type: ignore
 
         def on_def_done():
+            # 3. Animate Translation
+            def on_tr_done():
+                # 4. Animate Examples
+                if sense.examples:
+                    self._animate_examples_sequentially(parent_bubble, entry, senses, index, sense.examples, 0)
+                else:
+                    self._animate_senses_sequentially(parent_bubble, entry, senses, index + 1)
+
             if sense.translation:
                 tr_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 10, "italic"), 
                                   bg=C["bubble_ai"], fg="#A8B5C8", wraplength=640, justify="left") # type: ignore
                 tr_lbl.pack(anchor="w", padx=(25, 0)) # type: ignore
-                self._animate_typing(tr_lbl, f"({sense.translation})", 
-                                     on_complete=lambda: self._animate_senses_sequentially(parent_bubble, entry, senses, index + 1))
+                self._animate_typing(tr_lbl, f"({sense.translation})", on_complete=on_tr_done)
             else:
-                self._animate_senses_sequentially(parent_bubble, entry, senses, index + 1)
+                on_tr_done()
 
         self._animate_typing(def_lbl, f"➤ {sense.definition}", on_complete=on_def_done)
+
+    def _animate_examples_sequentially(self, parent_bubble: tk.Frame, entry: LexicalEntry, senses: list, s_idx: int, examples: list, e_idx: int) -> None: # type: ignore
+        if e_idx >= len(examples) or not parent_bubble.winfo_exists():
+            # Done with this sense, move to next sense
+            self._animate_senses_sequentially(parent_bubble, entry, senses, s_idx + 1)
+            return
+        
+        ex = examples[e_idx]
+        en_ex = ex.get("en", "")
+        if not en_ex:
+            self._animate_examples_sequentially(parent_bubble, entry, senses, s_idx, examples, e_idx + 1)
+            return
+
+        ex_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 10, "italic"), 
+                          bg=C["bubble_ai"], fg=C["text_example"], wraplength=620, justify="left") # type: ignore
+        ex_lbl.pack(anchor="w", padx=(10, 0)) # type: ignore
+        
+        self._animate_typing(ex_lbl, f"= {en_ex}", on_complete=lambda: self._animate_examples_sequentially(parent_bubble, entry, senses, s_idx, examples, e_idx + 1))
+
         
     def _add_save_button_after_animation(self, bubble: tk.Frame, entry: LexicalEntry) -> None: # type: ignore
         if not bubble.winfo_exists(): return
