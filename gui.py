@@ -255,28 +255,37 @@ class DictionaryUI:
             def _on_scroll(e): canvas.configure(scrollregion=canvas.bbox("all")) # type: ignore
             list_frame.bind("<Configure>", _on_scroll) # type: ignore
             
-            for line in lines:
-                item = tk.Frame(list_frame, bg=C["bubble_ai"], pady=10, padx=15) # type: ignore
-                item.pack(fill="x", pady=5) # type: ignore
+            def _add_item(idx, line_text):
+                if not parent.winfo_exists(): return
+                item = tk.Frame(list_frame, bg=C["bubble_ai"], pady=12, padx=18, 
+                                highlightthickness=1, highlightbackground=C["bubble_border"]) # type: ignore
                 
-                parts = line.split(" - ", 1)
+                parts = line_text.split(" - ", 1)
                 word = parts[0]
                 mean = parts[1] if len(parts) > 1 else ""
                 
                 tk.Label(item, text=word, font=(FONT_FAMILY, 14, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(side="left") # type: ignore
                 tk.Label(item, text=f": {mean}", font=(FONT_FAMILY, 11), bg=C["bubble_ai"], fg=C["green"]).pack(side="left", padx=10) # type: ignore
                 
-                # Delete button
                 def _del(w=word):
-                    with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
-                        rem = [l for l in f if not l.startswith(f"{w} -")]
-                    with open(BOOKMARKS_PATH, "w", encoding="utf-8") as f:
-                        f.writelines(rem)
-                    self._build_bookmarks_page(parent) # Refresh
+                    if messagebox.askyesno("Xác nhận", f"Xóa '{w}' khỏi sổ tay?"): # type: ignore
+                        with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
+                            rem = [l for l in f if not l.startswith(f"{w} -")]
+                        with open(BOOKMARKS_PATH, "w", encoding="utf-8") as f:
+                            f.writelines(rem)
+                        self._build_bookmarks_page(parent)
                 
                 btn_del = tk.Button(item, text="🗑", bg=C["bubble_ai"], fg=C["red"], bd=0, command=_del, cursor="hand2") # type: ignore
                 btn_del.pack(side="right") # type: ignore
-                self._bind_hover(btn_del, C["bubble_ai"], "#FEE2E2") # Light red hover
+                self._bind_hover(btn_del, C["bubble_ai"], "#FEE2E2")
+                
+                # Staggered entry from bottom
+                item.pack(fill="x", pady=6, padx=5) # type: ignore
+                self._current_page = "bookmarks" # Ensure we are here
+
+            # Load sequentially
+            for i, line in enumerate(lines):
+                self.root.after(i * 100, lambda l=line, idx=i: _add_item(idx, l)) # type: ignore
 
     def _build_wotd_page(self, parent: tk.Frame) -> None: # type: ignore
         # Clear existing
@@ -295,7 +304,17 @@ class DictionaryUI:
         word = random.choice(self._autocomplete_words)
         
         card = tk.Frame(parent, bg=C["bubble_ai"], padx=40, pady=40, bd=1, relief="solid") # type: ignore
+        # Fade-in effect simulation
+        def fade_in(step=0):
+            if not card.winfo_exists(): return
+            colors = ["#1E1E3F", "#24244A", "#2A2A55", "#303060", C["bubble_ai"]]
+            if step < len(colors):
+                card.config(bg=colors[step]) # type: ignore
+                for w in card.winfo_children(): w.config(bg=colors[step]) # type: ignore
+                self.root.after(50, fade_in, step + 1) # type: ignore
+        
         card.place(relx=0.5, rely=0.5, anchor="center") # type: ignore
+        fade_in()
         
         tk.Label(card, text="TỪ VỰNG HÔM NAY", font=(FONT_FAMILY, 10, "bold"), bg=C["bubble_ai"], fg=C["accent"]).pack() # type: ignore
         tk.Label(card, text=word.upper(), font=(FONT_FAMILY, 36, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(pady=10) # type: ignore
@@ -446,14 +465,17 @@ class DictionaryUI:
     # Visual Polish Helpers (Animations/Transitions)
     # ------------------------------------------------------------------
 
-    def _animate_typing(self, label: tk.Label, text: str, index: int = 0) -> None: # type: ignore
+    def _animate_typing(self, label: tk.Label, text: str, index: int = 0, on_complete: Optional[Callable[[], None]] = None) -> None: # type: ignore
         if not label.winfo_exists(): return # Stop if widget destroyed
         if index <= len(text):
             label.config(text=text[:index]) # type: ignore
             self._scroll_to_bottom()
             # Dynamic speed: faster for long texts
-            delay = 10 if len(text) > 200 else 18
-            self.root.after(delay, self._animate_typing, label, text, index + 1) # type: ignore
+            delay = 8 if len(text) > 200 else 15
+            self.root.after(delay, self._animate_typing, label, text, index + 1, on_complete) # type: ignore
+        elif on_complete:
+            # Short pause before next line
+            self.root.after(100, on_complete) # type: ignore
 
     def _bind_hover(self, widget: tk.Widget, normal_bg: str, hover_bg: str) -> None: # type: ignore
         widget.bind("<Enter>", lambda e: widget.config(bg=hover_bg)) # type: ignore
@@ -516,7 +538,8 @@ class DictionaryUI:
             bg=C["chat_bg"], fg=C["accent"]
         ).pack(side="left", anchor="n", padx=(0, 8), pady=4)  # type: ignore
 
-        bubble = tk.Frame(row, bg=C["bubble_ai"], padx=16, pady=10) # type: ignore
+        bubble = tk.Frame(row, bg=C["bubble_ai"], padx=16, pady=10, 
+                         highlightthickness=1, highlightbackground=C["bubble_border"]) # type: ignore
         bubble.pack(side="left", fill="x", expand=True)  # type: ignore
 
         lbl = tk.Label( # type: ignore
@@ -553,29 +576,22 @@ class DictionaryUI:
         if ipa:
             title_text += f" /{ipa}/"
 
+        source = getattr(entry, "source", "") # Define early for scope
+
+        # Create all labels first (empty) but hide them or manage their display
+        # We will use a nested chain to animate them SEQUENTIALLY
+        
+        # 1. Title
         title_lbl = tk.Label(  # type: ignore
             bubble, text="",
             font=(FONT_FAMILY, 20, "bold"),
             bg=C["bubble_ai"], fg=C["text_main"]
         )
         title_lbl.pack(anchor="w", pady=(0, 2))  # type: ignore
-        self._animate_typing(title_lbl, title_text)
 
-        # Source tag
-        source = getattr(entry, "source", "")
-        if source:
-            if source == "Google Translate":
-                algo = "🌍 Google Translate"
-            else:
-                algo = "⚡ O(1) RAM" if "Cache" in source else ("📀 O(log n) Disk" if source == "Local Cache" else "🌐 Free API")
-            tk.Label(  # type: ignore
-                bubble, text=algo,
-                font=(FONT_FAMILY, 8),
-                bg=C["bubble_ai"], fg=C["text_dim"]
-            ).pack(anchor="w", pady=(0, 6))  # type: ignore
-
-        # Short translation ("Mỳ ăn liền" / Sentence Translation)
+        # 2. Short Translation
         short = getattr(entry, "short_translation", "")
+        short_lbl = None
         if short:
             short_lbl = tk.Label(  # type: ignore
                 bubble, text="",
@@ -583,13 +599,33 @@ class DictionaryUI:
                 bg=C["bubble_ai"], fg=C["green"],
                 wraplength=640, justify="left"
             )
-            short_lbl.pack(anchor="w", pady=(8, 4))  # type: ignore
-            # Delay slightly after title
-            self.root.after(200, lambda: self._animate_typing(short_lbl, short)) # type: ignore
+            # pack will happen in chain
+
+        # --- ANIMATION CHAIN ---
+        def stage_3():
+            if not bubble.winfo_exists(): return
+            tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=8)  # type: ignore
             
+            # Show Source tag (Sequential)
+            if source:
+                if source == "Google Translate":
+                    algo = "🌍 Google Translate"
+                else:
+                    algo = "⚡ RAM O(1)" if "Cache" in source else ("📀 Disk O(log n)" if source == "Local Cache" else "🌐 Free API")
+                tk.Label(bubble, text=algo, font=(FONT_FAMILY, 8), bg=C["bubble_ai"], fg=C["text_dim"]).pack(anchor="w", pady=(0, 6)) # type: ignore
             
-        # Divider
-        tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=4)  # type: ignore
+            self._animate_senses_sequentially(bubble, entry, entry.senses) # Pass entry too
+
+        def stage_2():
+            if not bubble.winfo_exists(): return
+            if short_lbl:
+                short_lbl.pack(anchor="w", pady=(8, 12))  # type: ignore
+                self._animate_typing(short_lbl, short, on_complete=stage_3)
+            else:
+                stage_3()
+
+        # Start Chain
+        self._animate_typing(title_lbl, title_text, on_complete=stage_2)
 
         # TFlat Pos Map
         pos_vi = {
@@ -815,6 +851,64 @@ class DictionaryUI:
     def _hide_listbox(self) -> None:
         if self._listbox_frame.winfo_exists(): # type: ignore
             self._listbox_frame.place_forget()  # type: ignore
+
+    def _animate_senses_sequentially(self, parent_bubble: tk.Frame, entry: LexicalEntry, senses: list, index: int = 0) -> None: # type: ignore
+        if index >= len(senses) or not parent_bubble.winfo_exists():
+             self._add_save_button_after_animation(parent_bubble, entry)
+             self._scroll_to_bottom()
+             return
+
+        sense = senses[index]
+        pos_vi = {
+            "noun": "danh từ", "verb": "động từ", "adjective": "tính từ",
+            "adverb": "trạng từ", "pronoun": "đại từ", "preposition": "giới từ",
+            "conjunction": "liên từ", "interjection": "thán từ", "idiom": "thành ngữ"
+        }
+        
+        pos_key = (sense.pos or "").lower()
+        vi_pos = pos_vi.get(pos_key, pos_key)
+        if vi_pos:
+            tk.Label(parent_bubble, text=f"* {vi_pos}", font=(FONT_FAMILY, 11, "bold"), 
+                     bg=C["bubble_ai"], fg="#5C9BD1").pack(anchor="w", pady=(8, 2)) # type: ignore
+
+        def_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 11), 
+                           bg=C["bubble_ai"], fg=C["text_main"], wraplength=640, justify="left") # type: ignore
+        def_lbl.pack(anchor="w", padx=(10, 0)) # type: ignore
+
+        def on_def_done():
+            if sense.translation:
+                tr_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 10, "italic"), 
+                                  bg=C["bubble_ai"], fg="#A8B5C8", wraplength=640, justify="left") # type: ignore
+                tr_lbl.pack(anchor="w", padx=(25, 0)) # type: ignore
+                self._animate_typing(tr_lbl, f"({sense.translation})", 
+                                     on_complete=lambda: self._animate_senses_sequentially(parent_bubble, entry, senses, index + 1))
+            else:
+                self._animate_senses_sequentially(parent_bubble, entry, senses, index + 1)
+
+        self._animate_typing(def_lbl, f"➤ {sense.definition}", on_complete=on_def_done)
+        
+    def _add_save_button_after_animation(self, bubble: tk.Frame, entry: LexicalEntry) -> None: # type: ignore
+        if not bubble.winfo_exists(): return
+        source = getattr(entry, "source", "")
+        if source == "Google Translate": return 
+        
+        btn = tk.Button( # type: ignore
+            bubble, text="⭐ Lưu vào Sổ tay", font=(FONT_FAMILY, 9, "bold"),
+            bg="#2A2A4A", fg=C["gold"], bd=0, padx=12, pady=6, cursor="hand2"
+        )
+        btn.pack(anchor="w", pady=(15, 5)) # type: ignore
+        self._bind_hover(btn, "#2A2A4A", "#3A3A5A")
+        
+        def _save():
+            _ensure_bookmarks()
+            line = f"{entry.word} - {getattr(entry, 'short_translation', '')}\n"
+            with open(BOOKMARKS_PATH, "a", encoding="utf-8") as f:
+                f.write(line)
+            btn.config(text="✅ Đã lưu", fg=C["green"]) # type: ignore
+            
+        btn.config(command=_save) # type: ignore
+
+
 
     # ------------------------------------------------------------------
     # Run
