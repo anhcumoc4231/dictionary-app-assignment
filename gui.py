@@ -119,7 +119,7 @@ class DictionaryUI:
         threading.Thread(target=self._process_wotd, args=(w,), daemon=True).start()  # type: ignore
 
     def _process_wotd(self, word: str) -> None:
-        entry = self._dict_app.find_word(word)
+        entry = self._dict_app.find_word(word)  # type: ignore
         if entry:
             self.root.after(0, lambda: self._add_result_bubble(entry))  # type: ignore
 
