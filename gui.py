@@ -28,6 +28,13 @@ else:
 DATA_PATH  = os.path.join(_BASE, "data", "meaning.data")
 INDEX_PATH = os.path.join(_BASE, "data", "index.data")
 WORDS_LIST_PATH = os.path.join(_BASE, "data", "words_list.txt")
+BOOKMARKS_PATH = os.path.join(_BASE, "data", "bookmarks.txt")
+
+def _ensure_bookmarks() -> None:
+    if not os.path.exists(BOOKMARKS_PATH):
+        os.makedirs(os.path.dirname(BOOKMARKS_PATH), exist_ok=True)
+        with open(BOOKMARKS_PATH, "w", encoding="utf-8"):
+            pass
 
 # ── Bảng màu ─────────────────────────────────────────────────────────────────
 C = {
@@ -102,6 +109,19 @@ class DictionaryUI:
         self.root.after(0, lambda: self._add_ai_bubble(  # type: ignore
             f"✅ Hệ thống sẵn sàng!\n📦 Local Cache: **{n:,} từ** | 🌐 Free Dictionary API: Hoạt động"
         ))
+        self.root.after(1000, self._show_word_of_the_day)
+
+    def _show_word_of_the_day(self) -> None:
+        if not self._autocomplete_words or not self._dict_app: return
+        import random
+        w = random.choice(self._autocomplete_words)
+        self._add_ai_bubble("💡 **Word of the Day** (Từ vựng mỗi ngày):")
+        threading.Thread(target=self._process_wotd, args=(w,), daemon=True).start()
+
+    def _process_wotd(self, word: str) -> None:
+        entry = self._dict_app.find_word(word)
+        if entry:
+            self.root.after(0, lambda: self._add_result_bubble(entry))
 
     # ------------------------------------------------------------------
     # Widget builders
@@ -398,6 +418,29 @@ class DictionaryUI:
                         bg=C["bubble_ai"], fg=C["text_example"],
                         wraplength=620, justify="left"
                     ).pack(anchor="w", padx=(10, 0))
+
+        # Button: Lưu vào Bookmark
+        if source != "Google Translate":
+            btn = tk.Button( # type: ignore
+                bubble, text="⭐ Lưu từ này",
+                font=(FONT_FAMILY, 9, "bold"),
+                bg="#2A2A4A", fg=C["gold"],
+                bd=0, relief="flat", padx=10, pady=4, cursor="hand2"
+            )
+            # Closure
+            def _save_word(b=btn, e=entry):
+                _ensure_bookmarks()
+                saved = False
+                with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
+                    if f"{e.word} -" in f.read():
+                        saved = True
+                if not saved:
+                    with open(BOOKMARKS_PATH, "a", encoding="utf-8") as f:
+                        f.write(f"{e.word} - {getattr(e, 'short_translation', '')}\n")
+                b.config(text="✅ Đã lưu sổ tay", fg=C["green"])
+            
+            btn.config(command=_save_word)
+            btn.pack(anchor="e", pady=(10, 0)) # type: ignore
 
         self._scroll_to_bottom()
         self._last_entry = entry
