@@ -312,87 +312,70 @@ class DictionaryUI:
         bubble = tk.Frame(row, bg=C["bubble_ai"], padx=20, pady=14) # type: ignore
         bubble.pack(side="left", fill="x", expand=True)  # type: ignore
 
-        # Word title
-        tk.Label( # type: ignore
-            bubble, text=entry.word.upper(),
-            font=(FONT_FAMILY, 22, "bold"),
-            bg=C["bubble_ai"], fg=C["text_main"]
-        ).pack(anchor="w")  # type: ignore
-
-        # IPA phonetic
+        # Word title & IPA
         ipa = entry.uk_ipa or entry.us_ipa
+        title_text = entry.word.lower()
         if ipa:
-            tk.Label( # type: ignore
-                bubble, text=f"/{ipa}/",
-                font=("Georgia", 12, "italic"),
-                bg=C["bubble_ai"], fg=C["gold"]
-            ).pack(anchor="w")  # type: ignore
+            title_text += f" /{ipa}/"
 
-        # Short translation ("Mỳ ăn liền")
-        short = getattr(entry, "short_translation", "")
-        if short:
-            tk.Label( # type: ignore
-                bubble, text=short,
-                font=(FONT_FAMILY, 14, "bold"),
-                bg=C["bubble_ai"], fg=C["green"]
-            ).pack(anchor="w", pady=(4, 6))  # type: ignore
+        tk.Label(  # type: ignore
+            bubble, text=title_text,
+            font=(FONT_FAMILY, 20, "bold"),
+            bg=C["bubble_ai"], fg=C["text_main"]
+        ).pack(anchor="w", pady=(0, 2))
 
         # Source tag
         source = getattr(entry, "source", "")
         if source:
             algo = "⚡ O(1) RAM" if "Cache" in source else ("📀 O(log n) Disk" if source == "Local Cache" else "🌐 Free API")
-            tk.Label( # type: ignore
+            tk.Label(  # type: ignore
                 bubble, text=algo,
                 font=(FONT_FAMILY, 8),
                 bg=C["bubble_ai"], fg=C["text_dim"]
-            ).pack(anchor="w", pady=(0, 6))  # type: ignore
+            ).pack(anchor="w", pady=(0, 6))
 
         # Divider
-        tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=4) # type: ignore
+        tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=4)  # type: ignore
+
+        # TFlat Pos Map
+        pos_vi = {
+            "noun": "danh từ", "verb": "động từ", "adjective": "tính từ",
+            "adverb": "trạng từ", "pronoun": "đại từ", "preposition": "giới từ",
+            "conjunction": "liên từ", "interjection": "thán từ", "idiom": "thành ngữ"
+        }
 
         # Render senses
-        pos_colors = {"noun": C["tag_noun"] if "tag_noun" in C else "#5C9BD1",
-                      "verb": "#C97BDB", "adjective": "#F0A500", "adverb": "#7EC8A4"}
-
         current_pos = ""
         for i, sense in enumerate(entry.senses):
-            if sense.pos and sense.pos.lower() != current_pos:
-                current_pos = sense.pos.lower()
-                pos_color = pos_colors.get(current_pos, C["text_dim"])  # type: ignore
-                tk.Label( # type: ignore
-                    bubble, text=f"▪ {sense.pos.upper()}",
-                    font=(FONT_FAMILY, 10, "bold", "italic"),
-                    bg=C["bubble_ai"], fg=pos_color
-                ).pack(anchor="w", pady=(8, 2))  # type: ignore
+            pos_key = (sense.pos or "").lower()
+            if pos_key and pos_key != current_pos:
+                current_pos = pos_key
+                vi_pos = pos_vi.get(current_pos, current_pos)
+                tk.Label(  # type: ignore
+                    bubble, text=f"* {vi_pos}",
+                    font=(FONT_FAMILY, 12, "bold"),
+                    bg=C["bubble_ai"], fg="#5C9BD1"
+                ).pack(anchor="w", pady=(8, 2))
 
-            # Main Vietnamese meaning
+            # Main Vietnamese meaning (TFlat uses bullet '-')
             if sense.translation:
-                tk.Label( # type: ignore
-                    bubble, text=f"  {i+1}. {sense.translation}",
-                    font=(FONT_FAMILY, 11, "bold"),
-                    bg=C["bubble_ai"], fg=C["gold"],
+                tk.Label(  # type: ignore
+                    bubble, text=f"- {sense.translation}",
+                    font=(FONT_FAMILY, 11),
+                    bg=C["bubble_ai"], fg=C["text_main"],
                     wraplength=640, justify="left"
-                ).pack(anchor="w")  # type: ignore
+                ).pack(anchor="w", padx=(10, 0))
 
-            # English definition
-            if sense.definition:
-                tk.Label( # type: ignore
-                    bubble, text=f"     ({sense.definition})",
-                    font=(FONT_FAMILY, 10, "italic"),
-                    bg=C["bubble_ai"], fg=C["text_dim"],
-                    wraplength=620, justify="left"
-                ).pack(anchor="w")  # type: ignore
-
-            # Example
+            # Example (TFlat uses '=')
             for ex in sense.examples:
-                en_ex = ex.get("en", "")  # type: ignore
+                en_ex = ex.get("en", "")
                 if en_ex:
-                    tk.Label( # type: ignore
-                        bubble, text=f"     ▸ {en_ex}",
+                    tk.Label(  # type: ignore
+                        bubble, text=f"= {en_ex}",
                         font=(FONT_FAMILY, 10, "italic"),
                         bg=C["bubble_ai"], fg=C["text_example"],
                         wraplength=620, justify="left"
-                    ).pack(anchor="w")  # type: ignore
+                    ).pack(anchor="w", padx=(10, 0))
 
         self._scroll_to_bottom()
         self._last_entry = entry
