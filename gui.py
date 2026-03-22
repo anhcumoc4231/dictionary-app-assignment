@@ -470,12 +470,11 @@ class DictionaryUI:
         if index <= len(text):
             label.config(text=text[:index]) # type: ignore
             self._scroll_to_bottom()
-            # Dynamic speed: faster for long texts
-            delay = 4 if len(text) > 200 else 8
-            self.root.after(delay, self._animate_typing, label, text, index + 1, on_complete) # type: ignore
+            # Ultra-fast speed
+            self.root.after(2, self._animate_typing, label, text, index + 1, on_complete) # type: ignore
         elif on_complete:
-            # Short pause before next line
-            self.root.after(50, on_complete) # type: ignore
+            # Micro pause
+            self.root.after(10, on_complete) # type: ignore
 
     def _bind_hover(self, widget: tk.Widget, normal_bg: str, hover_bg: str) -> None: # type: ignore
         widget.bind("<Enter>", lambda e: widget.config(bg=hover_bg)) # type: ignore
@@ -572,57 +571,50 @@ class DictionaryUI:
         bubble.pack(side="left", fill="x", expand=True)  # type: ignore
 
         # Word title & IPA
+        import re
         ipa = entry.uk_ipa or entry.us_ipa
         title_text = entry.word.lower()
         if ipa:
-            clean_ipa = ipa.strip("/[] ")
+            clean_ipa = re.sub(r'[/\[\]\s]', '', ipa)
             title_text += f" /{clean_ipa}/"
 
-        source = getattr(entry, "source", "") # Define early for scope
-
-        # Create all labels first (empty) but hide them or manage their display
-        # We will use a nested chain to animate them SEQUENTIALLY
+        source = getattr(entry, "source", "") # Define early 
         
         # 1. Title
         title_lbl = tk.Label(  # type: ignore
             bubble, text="",
-            font=(FONT_FAMILY, 20, "bold"),
+            font=(FONT_FAMILY, 24, "bold"), # Slightly larger
             bg=C["bubble_ai"], fg=C["text_main"]
         )
         title_lbl.pack(anchor="w", pady=(0, 2))  # type: ignore
 
-        # 2. Short Translation
+        # 2. Source Tag (Sequential)
+        source_lbl = tk.Label(bubble, text="", font=(FONT_FAMILY, 9), bg=C["bubble_ai"], fg=C["text_dim"]) # type: ignore
+
+        # 3. Short Translation (Green, Big)
         short = getattr(entry, "short_translation", "")
-        short_lbl = None
-        if short:
-            short_lbl = tk.Label(  # type: ignore
-                bubble, text="",
-                font=(FONT_FAMILY, 14, "bold"),
-                bg=C["bubble_ai"], fg=C["green"],
-                wraplength=640, justify="left"
-            )
-            # pack will happen in chain
+        short_lbl = tk.Label(bubble, text="", font=(FONT_FAMILY, 18, "bold"), bg=C["bubble_ai"], fg=C["green"], wraplength=640, justify="left") # type: ignore
 
         # --- ANIMATION CHAIN ---
-        def stage_3():
+        def stage_4(): # Final: Senses
             if not bubble.winfo_exists(): return
-            tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=8)  # type: ignore
-            
-            # Show Source tag (Sequential)
-            if source:
-                if source == "Google Translate":
-                    algo = "🌍 Google Translate"
-                else:
-                    algo = "⚡ RAM O(1)" if "Cache" in source else ("📀 Disk O(log n)" if source == "Local Cache" else "🌐 Free API")
-                tk.Label(bubble, text=algo, font=(FONT_FAMILY, 8), bg=C["bubble_ai"], fg=C["text_dim"]).pack(anchor="w", pady=(0, 6)) # type: ignore
-            
-            self._animate_senses_sequentially(bubble, entry, entry.senses) # Pass entry too
+            tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=10)  # type: ignore
+            self._animate_senses_sequentially(bubble, entry, entry.senses)
 
-        def stage_2():
+        def stage_3(): # Green Translation
             if not bubble.winfo_exists(): return
-            if short_lbl:
-                short_lbl.pack(anchor="w", pady=(8, 12))  # type: ignore
-                self._animate_typing(short_lbl, short, on_complete=stage_3)
+            if short:
+                short_lbl.pack(anchor="w", pady=(10, 5)) # type: ignore
+                self._animate_typing(short_lbl, short, on_complete=stage_4)
+            else:
+                stage_4()
+
+        def stage_2(): # Source Tag
+            if not bubble.winfo_exists(): return
+            if source:
+                source_lbl.pack(anchor="w", pady=(0, 6)) # type: ignore
+                algo = "🌍 Google Translate" if source == "Google Translate" else ("⚡ RAM O(1)" if "Cache" in source else ("📀 Disk O(log n)" if source == "Local Cache" else "🌐 Free API"))
+                self._animate_typing(source_lbl, algo, on_complete=stage_3)
             else:
                 stage_3()
 
