@@ -116,7 +116,6 @@ class DictionaryUI:
         self.root.after(0, lambda: self._add_ai_bubble(  # type: ignore
             f"✅ Hệ thống sẵn sàng!\n📦 Local Cache: **{n:,} từ** | 🌐 Free Dictionary API: Hoạt động"
         ))
-        self.root.after(1000, self._show_word_of_the_day)  # type: ignore
 
     def _show_word_of_the_day(self) -> None:
         if not self._autocomplete_words or not self._dict_app: return
