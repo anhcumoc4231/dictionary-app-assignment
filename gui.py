@@ -467,14 +467,17 @@ class DictionaryUI:
 
     def _animate_typing(self, label: tk.Label, text: str, index: int = 0, on_complete: Optional[Callable[[], None]] = None) -> None: # type: ignore
         if not label.winfo_exists(): return # Stop if widget destroyed
+        
+        # Supersonic speed: 2-3 chars per step
+        step_size = 3 if len(text) > 50 else 2
+        
         if index <= len(text):
             label.config(text=text[:index]) # type: ignore
             self._scroll_to_bottom()
-            # Ultra-fast speed
-            self.root.after(2, self._animate_typing, label, text, index + 1, on_complete) # type: ignore
+            self.root.after(1, self._animate_typing, label, text, index + step_size, on_complete) # type: ignore
         elif on_complete:
-            # Micro pause
-            self.root.after(10, on_complete) # type: ignore
+            # Minimal pause
+            self.root.after(5, on_complete) # type: ignore
 
     def _bind_hover(self, widget: tk.Widget, normal_bg: str, hover_bg: str) -> None: # type: ignore
         widget.bind("<Enter>", lambda e: widget.config(bg=hover_bg)) # type: ignore
