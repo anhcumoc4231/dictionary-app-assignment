@@ -146,8 +146,13 @@ class DictionaryUI:
             self._create_page(page_id)
 
         # Show new page
-        self._pages[page_id].pack(fill="both", expand=True)
-        self._current_page = page_id
+        # Show new page with a tiny 'fluid' delay
+        def _do_show():
+            self._pages[page_id].pack(fill="both", expand=True)
+            self._current_page = page_id
+            self._scroll_to_bottom()
+        
+        self.root.after(10, _do_show) # type: ignore
 
     def _create_page(self, page_id: str) -> None:
         frame = tk.Frame(self._main_container, bg=C["bg"]) # type: ignore
@@ -269,7 +274,9 @@ class DictionaryUI:
                         f.writelines(rem)
                     self._build_bookmarks_page(parent) # Refresh
                 
-                tk.Button(item, text="🗑", bg=C["bubble_ai"], fg=C["red"], bd=0, command=_del, cursor="hand2").pack(side="right") # type: ignore
+                btn_del = tk.Button(item, text="🗑", bg=C["bubble_ai"], fg=C["red"], bd=0, command=_del, cursor="hand2") # type: ignore
+                btn_del.pack(side="right") # type: ignore
+                self._bind_hover(btn_del, C["bubble_ai"], "#FEE2E2") # Light red hover
 
     def _build_wotd_page(self, parent: tk.Frame) -> None: # type: ignore
         # Clear existing
@@ -297,11 +304,15 @@ class DictionaryUI:
         if entry and entry.short_translation:
              tk.Label(card, text=entry.short_translation, font=(FONT_FAMILY, 18), bg=C["bubble_ai"], fg=C["green"], wraplength=400).pack() # type: ignore
         
-        tk.Button(card, text="🔄 Đổi từ khác", font=(FONT_FAMILY, 10), bg=C["accent"], fg="white", 
-                  padx=20, pady=8, command=lambda: self._build_wotd_page(parent), cursor="hand2").pack(pady=30) # type: ignore
+        btn_shuffle = tk.Button(card, text="🔄 Đổi từ khác", font=(FONT_FAMILY, 10), bg=C["accent"], fg="white", 
+                  padx=20, pady=8, command=lambda: self._build_wotd_page(parent), cursor="hand2") # type: ignore
+        btn_shuffle.pack(pady=30) # type: ignore
+        self._bind_hover(btn_shuffle, C["accent"], C["accent2"])
         
-        tk.Button(parent, text="← Quay lại tra từ", font=(FONT_FAMILY, 10), bg=C["bg"], fg=C["text_dim"], 
-                  bd=0, command=lambda: self.show_page("chat"), cursor="hand2").pack(side="bottom", pady=20) # type: ignore
+        btn_back = tk.Button(parent, text="← Quay lại tra từ", font=(FONT_FAMILY, 10), bg=C["bg"], fg=C["text_dim"], 
+                  bd=0, command=lambda: self.show_page("chat"), cursor="hand2") # type: ignore
+        btn_back.pack(side="bottom", pady=20) # type: ignore
+        self._bind_hover(btn_back, C["bg"], C["bubble_border"])
 
     # ------------------------------------------------------------------
     # Widget builders
@@ -420,14 +431,33 @@ class DictionaryUI:
         self._entry.focus_set() # type: ignore
 
         # Send button
-        tk.Button( # type: ignore
+        btn = tk.Button( # type: ignore
             inner, text="Tra  ➤",
             font=(FONT_FAMILY, 12, "bold"),
             bg=C["accent"], fg="white",
             activebackground=C["accent2"], activeforeground="white",
             bd=0, relief="flat", padx=20, pady=10, cursor="hand2",
             command=self._on_search
-        ).pack(side="left", padx=(10, 0))  # type: ignore
+        )
+        btn.pack(side="left", padx=(10, 0))  # type: ignore
+        self._bind_hover(btn, C["accent"], C["accent2"])
+
+    # ------------------------------------------------------------------
+    # Visual Polish Helpers (Animations/Transitions)
+    # ------------------------------------------------------------------
+
+    def _animate_typing(self, label: tk.Label, text: str, index: int = 0) -> None: # type: ignore
+        if not label.winfo_exists(): return # Stop if widget destroyed
+        if index <= len(text):
+            label.config(text=text[:index]) # type: ignore
+            self._scroll_to_bottom()
+            # Dynamic speed: faster for long texts
+            delay = 10 if len(text) > 200 else 18
+            self.root.after(delay, self._animate_typing, label, text, index + 1) # type: ignore
+
+    def _bind_hover(self, widget: tk.Widget, normal_bg: str, hover_bg: str) -> None: # type: ignore
+        widget.bind("<Enter>", lambda e: widget.config(bg=hover_bg)) # type: ignore
+        widget.bind("<Leave>", lambda e: widget.config(bg=normal_bg)) # type: ignore
 
     # ------------------------------------------------------------------
     # Canvas / Scroll helpers
@@ -489,12 +519,17 @@ class DictionaryUI:
         bubble = tk.Frame(row, bg=C["bubble_ai"], padx=16, pady=10) # type: ignore
         bubble.pack(side="left", fill="x", expand=True)  # type: ignore
 
-        tk.Label( # type: ignore
-            bubble, text=markdown_text.replace("**", ""),
+        lbl = tk.Label( # type: ignore
+            bubble, text="",
             font=(FONT_FAMILY, 11),
             bg=C["bubble_ai"], fg=C["text_dim"],
             wraplength=680, justify="left"
-        ).pack(anchor="w")  # type: ignore
+        )
+        lbl.pack(anchor="w")  # type: ignore
+        
+        # Start animation
+        clean_text = markdown_text.replace("**", "").replace("\\n", "\n")
+        self._animate_typing(lbl, clean_text)
 
         self._scroll_to_bottom()
 
@@ -518,11 +553,13 @@ class DictionaryUI:
         if ipa:
             title_text += f" /{ipa}/"
 
-        tk.Label(  # type: ignore
-            bubble, text=title_text,
+        title_lbl = tk.Label(  # type: ignore
+            bubble, text="",
             font=(FONT_FAMILY, 20, "bold"),
             bg=C["bubble_ai"], fg=C["text_main"]
-        ).pack(anchor="w", pady=(0, 2))  # type: ignore
+        )
+        title_lbl.pack(anchor="w", pady=(0, 2))  # type: ignore
+        self._animate_typing(title_lbl, title_text)
 
         # Source tag
         source = getattr(entry, "source", "")
@@ -540,12 +577,16 @@ class DictionaryUI:
         # Short translation ("Mỳ ăn liền" / Sentence Translation)
         short = getattr(entry, "short_translation", "")
         if short:
-            tk.Label(  # type: ignore
-                bubble, text=short,
+            short_lbl = tk.Label(  # type: ignore
+                bubble, text="",
                 font=(FONT_FAMILY, 14, "bold"),
                 bg=C["bubble_ai"], fg=C["green"],
                 wraplength=640, justify="left"
-            ).pack(anchor="w", pady=(8, 4))  # type: ignore
+            )
+            short_lbl.pack(anchor="w", pady=(8, 4))  # type: ignore
+            # Delay slightly after title
+            self.root.after(200, lambda: self._animate_typing(short_lbl, short)) # type: ignore
+            
             
         # Divider
         tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=4)  # type: ignore
@@ -572,21 +613,25 @@ class DictionaryUI:
 
             # English definition (+ nghĩa tiếng Anh)
             if sense.definition:
-                tk.Label(  # type: ignore
-                    bubble, text=f"+ {sense.definition}",
+                def_lbl = tk.Label(  # type: ignore
+                    bubble, text="",
                     font=(FONT_FAMILY, 11),
                     bg=C["bubble_ai"], fg=C["text_main"],
                     wraplength=640, justify="left"
-                ).pack(anchor="w", padx=(10, 0))  # type: ignore
+                )
+                def_lbl.pack(anchor="w", padx=(10, 0))  # type: ignore
+                self._animate_typing(def_lbl, f"➤ {sense.definition}")
 
             # Vietnamese meaning in parentheses (nghĩa tiếng Việt)
             if sense.translation:
-                tk.Label(  # type: ignore
-                    bubble, text=f"({sense.translation})",
+                tr_lbl = tk.Label(  # type: ignore
+                    bubble, text="",
                     font=(FONT_FAMILY, 10, "italic"),
                     bg=C["bubble_ai"], fg="#A8B5C8",
                     wraplength=640, justify="left"
-                ).pack(anchor="w", padx=(25, 0))  # type: ignore
+                )
+                tr_lbl.pack(anchor="w", padx=(25, 0))  # type: ignore
+                self._animate_typing(tr_lbl, f"({sense.translation})")
 
             # Example (TFlat uses '=')
             for ex in sense.examples:
