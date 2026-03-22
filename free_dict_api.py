@@ -58,12 +58,21 @@ class FreeDictClient:
         # 2. Senses (Meanings)
         senses = []
         
-        # Tiền xử lý để gom text đi dịch 1 lần (Batch Translation) giúp tăng tốc độ đáng kể
-        # PHẦN TỬ ĐẦU TIÊN CỦA MẢNG CHÍNH LÀ TỪ VỰNG TÌM KIẾM ĐỂ LẤY NGHĨA "MỲ ĂN LIỀN"
-        lines_to_translate: List[str] = [query_word]
+        # --- ĐỘC LẬP HOÁ DỊCH THUẬT (Word-Level Translation) ---
+        # Dịch riêng từ khoá để có kết quả mỳ ăn liền ngắn gọn nhất (vd: arm -> cánh tay)
+        short_translation = ""
+        try:
+            # Title case để chữ cái đầu luôn viết hoa đẹp mắt
+            t_res = GoogleTranslator(source='en', target='vi').translate(query_word)
+            short_translation = str(t_res).title() if t_res else query_word
+        except Exception as e:
+            print(f"Keyword translation failed: {e}")
+            short_translation = query_word
+
+        # --- DỊCH CÁC ĐỊNH NGHĨA (Definitions) ---
+        lines_to_translate: List[str] = []
         
         # CHỈ lấy tối đa 2 lớp Nghĩa (Definitions) quan trọng nhất cho mỗi Từ loại (Noun, Verb..)
-        # Để đảm bảo tốc độ phản hồi TỨC THÌ (< 0.5s)
         for meaning in entry_data.get("meanings", []):
             for def_data in meaning.get("definitions", [])[:2]:
                 lines_to_translate.append(def_data.get("definition", ""))
@@ -88,8 +97,7 @@ class FreeDictClient:
                 translated_lines = [""] * len(lines_to_translate)
 
         # Trích xuất lại từ mảng đã dịch
-        short_translation = str(translated_lines[0]).title() if translated_lines and translated_lines[0] else ""
-        idx = 1
+        idx = 0
         
         for meaning in entry_data.get("meanings", []):
             pos = meaning.get("partOfSpeech", "")
