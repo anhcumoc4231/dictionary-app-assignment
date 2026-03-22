@@ -90,6 +90,7 @@ class DictionaryUI:
         self._autocomplete_words: List[str] = []
         self._search_var = tk.StringVar()  # type: ignore
         self._last_entry: Optional[LexicalEntry] = None
+        self._entry: Optional[tk.Entry] = None  # type: ignore
 
         # Navigation State
         self._current_page: Optional[str] = None
@@ -288,50 +289,127 @@ class DictionaryUI:
                 self.root.after(i * 100, lambda l=line, idx=i: _add_item(idx, l)) # type: ignore
 
     def _build_wotd_page(self, parent: tk.Frame) -> None: # type: ignore
-        # Clear existing
-        for widget in parent.winfo_children(): # type: ignore
-            widget.destroy() # type: ignore
-            
-        header = tk.Frame(parent, bg=C["header_bg"], pady=20) # type: ignore
-        header.pack(fill="x") # type: ignore
-        tk.Label(header, text="💡 WORD OF THE DAY", font=(FONT_FAMILY, 20, "bold"), bg=C["header_bg"], fg=C["accent"]).pack() # type: ignore
+        """Word of the Day as a 5-card flip game."""
+        import random
+        for widget in parent.winfo_children():
+            widget.destroy()
+
+        # --- Header ---
+        header = tk.Frame(parent, bg=C["header_bg"], pady=16)
+        header.pack(fill="x")
+        tk.Label(header, text="💡 LUYỆN TẪ VỰNG — LẬT THẾ",
+                 font=(FONT_FAMILY, 18, "bold"), bg=C["header_bg"], fg=C["accent"]).pack()
+        tk.Label(header, text="Bấm vào thẻ bất kỳ để khám phá từ vựng!",
+                 font=(FONT_FAMILY, 10), bg=C["header_bg"], fg=C["text_dim"]).pack()
+        tk.Frame(parent, bg=C["bubble_border"], height=1).pack(fill="x")
+
+        # --- Cards Container ---
+        body = tk.Frame(parent, bg=C["chat_bg"])
+        body.pack(fill="both", expand=True, padx=40, pady=20)
 
         if not self._autocomplete_words or not self._dict_app:
-             tk.Label(parent, text="Đang tải dữ liệu...", bg=C["bg"], fg=C["text_dim"]).pack(pady=40) # type: ignore
-             return
+            tk.Label(body, text="⏳ Đang tải dữ liệu...",
+                     bg=C["chat_bg"], fg=C["text_dim"], font=(FONT_FAMILY, 13)).pack(pady=60)
+            return
 
-        import random
-        word = random.choice(self._autocomplete_words)
-        
-        card = tk.Frame(parent, bg=C["bubble_ai"], padx=40, pady=40, bd=1, relief="solid") # type: ignore
-        # Fade-in effect simulation
-        def fade_in(step=0):
-            if not card.winfo_exists(): return
-            colors = ["#1E1E3F", "#24244A", "#2A2A55", "#303060", C["bubble_ai"]]
-            if step < len(colors):
-                card.config(bg=colors[step]) # type: ignore
-                for w in card.winfo_children(): w.config(bg=colors[step]) # type: ignore
-                self.root.after(50, fade_in, step + 1) # type: ignore
-        
-        card.place(relx=0.5, rely=0.5, anchor="center") # type: ignore
-        fade_in()
-        
-        tk.Label(card, text="TỪ VỰNG HÔM NAY", font=(FONT_FAMILY, 10, "bold"), bg=C["bubble_ai"], fg=C["accent"]).pack() # type: ignore
-        tk.Label(card, text=word.upper(), font=(FONT_FAMILY, 36, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(pady=10) # type: ignore
-        
-        entry = self._dict_app.find_word(word) # type: ignore
-        if entry and entry.short_translation:
-             tk.Label(card, text=entry.short_translation, font=(FONT_FAMILY, 18), bg=C["bubble_ai"], fg=C["green"], wraplength=400).pack() # type: ignore
-        
-        btn_shuffle = tk.Button(card, text="🔄 Đổi từ khác", font=(FONT_FAMILY, 10), bg=C["accent"], fg="white", 
-                  padx=20, pady=8, command=lambda: self._build_wotd_page(parent), cursor="hand2") # type: ignore
-        btn_shuffle.pack(pady=30) # type: ignore
+        words = random.sample(self._autocomplete_words, min(5, len(self._autocomplete_words)))
+
+        CARD_COLORS = ["#6D28D9", "#DB2777", "#059669", "#D97706", "#2563EB"]
+        CARD_HOVER  = ["#7C3AED", "#EC4899", "#10B981", "#F59E0B", "#3B82F6"]
+
+        def _make_card(idx: int, word: str) -> None:
+            color    = CARD_COLORS[idx % len(CARD_COLORS)]
+            hover_c  = CARD_HOVER[idx  % len(CARD_HOVER)]
+
+            card = tk.Frame(body, bg=color, padx=30, pady=28,
+                            highlightthickness=2, highlightbackground=hover_c,
+                            cursor="hand2")
+            card.pack(fill="x", pady=8, padx=10)
+            # Placeholder: ? 
+            q_lbl = tk.Label(card, text="?", font=(FONT_FAMILY, 36, "bold"),
+                             bg=color, fg="white")
+            q_lbl.pack()
+            hint = tk.Label(card, text="▸ Bấm để lật", font=(FONT_FAMILY, 9),
+                            bg=color, fg="rgba(255,255,255,0.6)")
+            hint.config(fg="#FBBF24")
+            hint.pack()
+
+            flipped = [False]
+
+            def _flip(e=None, c=card, w=word, clr=color, h=hover_c,
+                      ql=q_lbl, hl=hint, f=flipped):
+                if f[0]: return
+                f[0] = True
+                # Clear
+                for wg in c.winfo_children():
+                    wg.destroy()
+                # Reveal word
+                wl = tk.Label(c, text=w.upper(), font=(FONT_FAMILY, 28, "bold"),
+                              bg=clr, fg="white")
+                wl.pack()
+                # Get meaning in background
+                def _fetch():
+                    entry = self._dict_app.find_word(w) # type: ignore
+                    def _show():
+                        if not c.winfo_exists(): return
+                        meaning = ""
+                        if entry:
+                            meaning = getattr(entry, "short_translation", "")
+                            if not meaning and entry.senses:
+                                for s in entry.senses:
+                                    if s.translation:
+                                        meaning = s.translation; break
+                        ml = tk.Label(c, text=meaning or "(đang tải...)",
+                                      font=(FONT_FAMILY, 16), bg=clr, fg=C["green"],
+                                      wraplength=700, justify="left")
+                        ml.pack(pady=(6, 0))
+                        # Pop-in: scale simulation via font change
+                        def _pop(step: int = 0) -> None:
+                            if not ml.winfo_exists() or step >= 3: return
+                            sizes = [10, 13, 16]
+                            ml.config(font=(FONT_FAMILY, sizes[step]))
+                            self.root.after(60, lambda: _pop(step + 1)) # type: ignore
+                        ml.config(font=(FONT_FAMILY, 10))
+                        self.root.after(20, _pop)
+                    self.root.after(0, _show)
+                import threading
+                threading.Thread(target=_fetch, daemon=True).start()
+                # Glow border flash
+                def _flash(step=0, on=True):
+                    if not c.winfo_exists(): return
+                    c.config(highlightbackground="white" if on else h)
+                    if step < 5:
+                        self.root.after(80, _flash, step+1, not on)
+                _flash()
+
+            card.bind("<Button-1>", _flip)
+            for ch in card.winfo_children():
+                ch.bind("<Button-1>", _flip)
+            self._bind_hover(card, color, hover_c)
+
+        # Slide each card in with stagger
+        for i, w in enumerate(words):
+            self.root.after(i * 120, lambda idx=i, wd=w: _make_card(idx, wd))
+
+        # --- Bottom buttons ---
+        btn_row = tk.Frame(parent, bg=C["chat_bg"])
+        btn_row.pack(side="bottom", fill="x", padx=40, pady=12)
+
+        btn_shuffle = tk.Button(btn_row, text="🃏 Xáo bài mới",
+                                font=(FONT_FAMILY, 11, "bold"),
+                                bg=C["accent"], fg="white", bd=0,
+                                padx=20, pady=8, cursor="hand2",
+                                command=lambda: self._build_wotd_page(parent))
+        btn_shuffle.pack(side="left")
         self._bind_hover(btn_shuffle, C["accent"], C["accent2"])
-        
-        btn_back = tk.Button(parent, text="← Quay lại tra từ", font=(FONT_FAMILY, 10), bg=C["bg"], fg=C["text_dim"], 
-                  bd=0, command=lambda: self.show_page("chat"), cursor="hand2") # type: ignore
-        btn_back.pack(side="bottom", pady=20) # type: ignore
-        self._bind_hover(btn_back, C["bg"], C["bubble_border"])
+
+        btn_back = tk.Button(btn_row, text="← Quay lại tra từ",
+                             font=(FONT_FAMILY, 10), bg=C["chat_bg"], fg=C["text_dim"],
+                             bd=0, cursor="hand2",
+                             command=lambda: self.show_page("chat"))
+        btn_back.pack(side="right")
+        self._bind_hover(btn_back, C["chat_bg"], C["bubble_border"])
+
 
     # ------------------------------------------------------------------
     # Widget builders
@@ -461,6 +539,14 @@ class DictionaryUI:
         btn.pack(side="left", padx=(10, 0))  # type: ignore
         self._bind_hover(btn, C["accent"], C["accent2"])
 
+        # Input glow pulse on focus
+        entry_widget = self._entry  # local ref to satisfy typechecker
+        if entry_widget is not None:
+            def _on_focus_in(e): self._start_glow(entry_frame)
+            def _on_focus_out(e): self._stop_glow(entry_frame)
+            entry_widget.bind("<FocusIn>", _on_focus_in)  # type: ignore
+            entry_widget.bind("<FocusOut>", _on_focus_out)  # type: ignore
+
     # ------------------------------------------------------------------
     # Visual Polish Helpers (Animations/Transitions)
     # ------------------------------------------------------------------
@@ -486,6 +572,31 @@ class DictionaryUI:
     def _bind_hover(self, widget: tk.Widget, normal_bg: str, hover_bg: str) -> None: # type: ignore
         widget.bind("<Enter>", lambda e: widget.config(bg=hover_bg)) # type: ignore
         widget.bind("<Leave>", lambda e: widget.config(bg=normal_bg)) # type: ignore
+
+    # Input Glow Pulse
+    _glow_job: Optional[str] = None
+    _glow_on: bool = False
+
+    def _start_glow(self, frame: tk.Frame) -> None: # type: ignore
+        self._glow_on = True
+        self._do_glow(frame)
+
+    def _stop_glow(self, frame: tk.Frame) -> None: # type: ignore
+        self._glow_on = False
+        if self._glow_job:
+            try:
+                self.root.after_cancel(self._glow_job) # type: ignore
+            except Exception:
+                pass
+        if frame.winfo_exists(): # type: ignore
+            frame.config(bg=C["input_border"]) # type: ignore
+
+    def _do_glow(self, frame: tk.Frame, step: int = 0) -> None: # type: ignore
+        if not self._glow_on or not frame.winfo_exists(): return # type: ignore
+        # Pulse between violet shades
+        colors = ["#4C1D95", "#7C3AED", "#8B5CF6", "#7C3AED", "#4C1D95"]
+        frame.config(bg=colors[step % len(colors)]) # type: ignore
+        self._glow_job = self.root.after(120, self._do_glow, frame, step + 1) # type: ignore
 
     # ------------------------------------------------------------------
     # Canvas / Scroll helpers
