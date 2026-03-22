@@ -25,7 +25,7 @@
 | 💾 Cache | LRU Cache O(1) trên RAM + Binary Search O(log n) trên đĩa |
 | 🎵 Âm thanh | Phát MP3 giọng US/UK từ API (hoặc pyttsx3 offline) |
 | ⌨️ Autocomplete | Gợi ý từ vựng từ kho 5,000 từ phổ biến nhất |
-| 🖥️ GUI | Tkinter dark-mode (Violet-Gold theme) |
+| 🖥️ GUI | Giao diện Chatbot AI (Tương tự ChatGPT/Claude) |
 
 ---
 
@@ -34,7 +34,7 @@
 ```
 ┌─────────────────────────────────────────────────────┐
 │                gui.py (DictionaryUI)                │  ← Giao diện Tkinter
-│    Dark Mode · Autocomplete · Audio Playback        │
+│  AI Chatbot Interface · Bubble Chat · Autocomplete  │
 └─────────────────────┬───────────────────────────────┘
                       │ calls
 ┌─────────────────────▼───────────────────────────────┐
