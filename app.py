@@ -40,10 +40,26 @@ class DictionaryApp:
 
     def find_word(self, keyword: str) -> Optional[LexicalEntry]:
         """ Public method có bọc lru_cache để đảm bảo lần tra lại lần 3+ là O(1) RAM. """
-        keyword = keyword.strip().lower()
+        keyword = keyword.strip()
         if not keyword:
             return None
-        return self._lru_cache(keyword)
+
+        # TÍNH NĂNG MỚI: Dịch Nguyên Câu bằng Google Translate
+        if " " in keyword or len(keyword) > 25:
+            try:
+                from deep_translator import GoogleTranslator  # type: ignore
+                translated = GoogleTranslator(source='en', target='vi').translate(keyword)
+                return LexicalEntry(
+                    word=keyword,
+                    short_translation=translated,
+                    senses=[],
+                    source="Google Translate"
+                )
+            except Exception as e:
+                print(f"Sentence translation failed: {e}")
+                return None
+
+        return self._lru_cache(keyword.lower())
 
     def _lookup(self, keyword: str) -> Optional[LexicalEntry]:
         """ Logic tìm kiếm nội bộ: HDD -> API -> Save to HDD """

@@ -327,13 +327,26 @@ class DictionaryUI:
         # Source tag
         source = getattr(entry, "source", "")
         if source:
-            algo = "⚡ O(1) RAM" if "Cache" in source else ("📀 O(log n) Disk" if source == "Local Cache" else "🌐 Free API")
+            if source == "Google Translate":
+                algo = "🌍 Google Translate"
+            else:
+                algo = "⚡ O(1) RAM" if "Cache" in source else ("📀 O(log n) Disk" if source == "Local Cache" else "🌐 Free API")
             tk.Label(  # type: ignore
                 bubble, text=algo,
                 font=(FONT_FAMILY, 8),
                 bg=C["bubble_ai"], fg=C["text_dim"]
             ).pack(anchor="w", pady=(0, 6))
 
+        # Short translation ("Mỳ ăn liền" / Sentence Translation)
+        short = getattr(entry, "short_translation", "")
+        if short:
+            tk.Label(  # type: ignore
+                bubble, text=short,
+                font=(FONT_FAMILY, 14, "bold"),
+                bg=C["bubble_ai"], fg=C["green"],
+                wraplength=640, justify="left"
+            ).pack(anchor="w", pady=(8, 4))
+            
         # Divider
         tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=4)  # type: ignore
 
