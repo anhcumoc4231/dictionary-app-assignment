@@ -368,7 +368,7 @@ class DictionaryUI:
                             if not ml.winfo_exists() or step >= 3: return
                             sizes = [10, 13, 16]
                             ml.config(font=(FONT_FAMILY, sizes[step]))
-                            self.root.after(60, lambda: _pop(step + 1)) # type: ignore
+                            self.root.after(60, _pop, step + 1) # type: ignore
                         ml.config(font=(FONT_FAMILY, 10))
                         self.root.after(20, _pop)
                     self.root.after(0, _show)
