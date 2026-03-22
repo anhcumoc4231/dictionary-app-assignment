@@ -21,7 +21,7 @@ from app import DictionaryApp  # type: ignore  # noqa: E402
 from models import LexicalEntry  # type: ignore  # noqa: E402
 
 if getattr(sys, 'frozen', False):
-    _BASE = sys._MEIPASS  # type: ignore
+    _BASE = os.path.dirname(sys.executable)
 else:
     _BASE = os.path.dirname(os.path.abspath(__file__))
 
