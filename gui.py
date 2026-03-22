@@ -96,7 +96,7 @@ class DictionaryUI:
         self._welcome_message()
 
         # Init backend in background
-        threading.Thread(target=self._init_backend, daemon=True).start()
+        threading.Thread(target=self._init_backend, daemon=True).start()  # type: ignore
 
     # ------------------------------------------------------------------
     # Backend Init
@@ -109,19 +109,19 @@ class DictionaryUI:
         self.root.after(0, lambda: self._add_ai_bubble(  # type: ignore
             f"✅ Hệ thống sẵn sàng!\n📦 Local Cache: **{n:,} từ** | 🌐 Free Dictionary API: Hoạt động"
         ))
-        self.root.after(1000, self._show_word_of_the_day)
+        self.root.after(1000, self._show_word_of_the_day)  # type: ignore
 
     def _show_word_of_the_day(self) -> None:
         if not self._autocomplete_words or not self._dict_app: return
         import random
         w = random.choice(self._autocomplete_words)
         self._add_ai_bubble("💡 **Word of the Day** (Từ vựng mỗi ngày):")
-        threading.Thread(target=self._process_wotd, args=(w,), daemon=True).start()
+        threading.Thread(target=self._process_wotd, args=(w,), daemon=True).start()  # type: ignore
 
     def _process_wotd(self, word: str) -> None:
         entry = self._dict_app.find_word(word)
         if entry:
-            self.root.after(0, lambda: self._add_result_bubble(entry))
+            self.root.after(0, lambda: self._add_result_bubble(entry))  # type: ignore
 
     # ------------------------------------------------------------------
     # Widget builders
@@ -342,7 +342,7 @@ class DictionaryUI:
             bubble, text=title_text,
             font=(FONT_FAMILY, 20, "bold"),
             bg=C["bubble_ai"], fg=C["text_main"]
-        ).pack(anchor="w", pady=(0, 2))
+        ).pack(anchor="w", pady=(0, 2))  # type: ignore
 
         # Source tag
         source = getattr(entry, "source", "")
@@ -355,7 +355,7 @@ class DictionaryUI:
                 bubble, text=algo,
                 font=(FONT_FAMILY, 8),
                 bg=C["bubble_ai"], fg=C["text_dim"]
-            ).pack(anchor="w", pady=(0, 6))
+            ).pack(anchor="w", pady=(0, 6))  # type: ignore
 
         # Short translation ("Mỳ ăn liền" / Sentence Translation)
         short = getattr(entry, "short_translation", "")
@@ -365,7 +365,7 @@ class DictionaryUI:
                 font=(FONT_FAMILY, 14, "bold"),
                 bg=C["bubble_ai"], fg=C["green"],
                 wraplength=640, justify="left"
-            ).pack(anchor="w", pady=(8, 4))
+            ).pack(anchor="w", pady=(8, 4))  # type: ignore
             
         # Divider
         tk.Frame(bubble, bg=C["bubble_border"], height=1).pack(fill="x", pady=4)  # type: ignore
@@ -388,7 +388,7 @@ class DictionaryUI:
                     bubble, text=f"* {vi_pos}",
                     font=(FONT_FAMILY, 12, "bold"),
                     bg=C["bubble_ai"], fg="#5C9BD1"
-                ).pack(anchor="w", pady=(8, 2))
+                ).pack(anchor="w", pady=(8, 2))  # type: ignore
 
             # English definition (+ nghĩa tiếng Anh)
             if sense.definition:
@@ -397,7 +397,7 @@ class DictionaryUI:
                     font=(FONT_FAMILY, 11),
                     bg=C["bubble_ai"], fg=C["text_main"],
                     wraplength=640, justify="left"
-                ).pack(anchor="w", padx=(10, 0))
+                ).pack(anchor="w", padx=(10, 0))  # type: ignore
 
             # Vietnamese meaning in parentheses (nghĩa tiếng Việt)
             if sense.translation:
@@ -406,7 +406,7 @@ class DictionaryUI:
                     font=(FONT_FAMILY, 10, "italic"),
                     bg=C["bubble_ai"], fg="#A8B5C8",
                     wraplength=640, justify="left"
-                ).pack(anchor="w", padx=(25, 0))
+                ).pack(anchor="w", padx=(25, 0))  # type: ignore
 
             # Example (TFlat uses '=')
             for ex in sense.examples:
@@ -417,7 +417,7 @@ class DictionaryUI:
                         font=(FONT_FAMILY, 10, "italic"),
                         bg=C["bubble_ai"], fg=C["text_example"],
                         wraplength=620, justify="left"
-                    ).pack(anchor="w", padx=(10, 0))
+                    ).pack(anchor="w", padx=(10, 0))  # type: ignore
 
         # Button: Lưu vào Bookmark
         if source != "Google Translate":
@@ -436,10 +436,10 @@ class DictionaryUI:
                         saved = True
                 if not saved:
                     with open(BOOKMARKS_PATH, "a", encoding="utf-8") as f:
-                        f.write(f"{e.word} - {getattr(e, 'short_translation', '')}\n")
-                b.config(text="✅ Đã lưu sổ tay", fg=C["green"])
+                        f.write(f"{e.word} - {getattr(e, 'short_translation', '')}\n")  # type: ignore
+                b.config(text="✅ Đã lưu sổ tay", fg=C["green"])  # type: ignore
             
-            btn.config(command=_save_word)
+            btn.config(command=_save_word)  # type: ignore
             btn.pack(anchor="e", pady=(10, 0)) # type: ignore
 
         self._scroll_to_bottom()
@@ -508,7 +508,7 @@ class DictionaryUI:
             else:
                 self.root.after(0, lambda: self._add_not_found_bubble(keyword))  # type: ignore
 
-        threading.Thread(target=_do_search, daemon=True).start()
+        threading.Thread(target=_do_search, daemon=True).start()  # type: ignore
 
     def _remove_last_ai_bubble(self) -> None:
         """Remove the last child (loading indicator) from chat frame."""
@@ -538,7 +538,7 @@ class DictionaryUI:
                     e.runAndWait()
                 except Exception:
                     pass
-            threading.Thread(target=_fallback, daemon=True).start()
+            threading.Thread(target=_fallback, daemon=True).start()  # type: ignore
 
     # ------------------------------------------------------------------
     # Autocomplete
