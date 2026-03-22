@@ -357,14 +357,23 @@ class DictionaryUI:
                     bg=C["bubble_ai"], fg="#5C9BD1"
                 ).pack(anchor="w", pady=(8, 2))
 
-            # Main Vietnamese meaning (TFlat uses bullet '-')
-            if sense.translation:
+            # English definition (+ nghĩa tiếng Anh)
+            if sense.definition:
                 tk.Label(  # type: ignore
-                    bubble, text=f"- {sense.translation}",
+                    bubble, text=f"+ {sense.definition}",
                     font=(FONT_FAMILY, 11),
                     bg=C["bubble_ai"], fg=C["text_main"],
                     wraplength=640, justify="left"
                 ).pack(anchor="w", padx=(10, 0))
+
+            # Vietnamese meaning in parentheses (nghĩa tiếng Việt)
+            if sense.translation:
+                tk.Label(  # type: ignore
+                    bubble, text=f"({sense.translation})",
+                    font=(FONT_FAMILY, 10, "italic"),
+                    bg=C["bubble_ai"], fg="#A8B5C8",
+                    wraplength=640, justify="left"
+                ).pack(anchor="w", padx=(25, 0))
 
             # Example (TFlat uses '=')
             for ex in sense.examples:
