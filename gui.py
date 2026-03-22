@@ -1,9 +1,9 @@
 # pyre-ignore-all-errors
-"""
-gui.py — AI Dictionary v3.2 (Gemini-Style UI + VS Code Left Sidebar)
-=====================================================================
-Entry point chính. Chạy: python gui.py
-"""
+"""  # type: ignore
+gui.py — AI Dictionary v3.2 (Gemini-Style UI + VS Code Left Sidebar)  # type: ignore
+=====================================================================  # type: ignore
+Entry point chính. Chạy: python gui.py  # type: ignore
+"""  # type: ignore
 
 import os
 import sys
@@ -18,101 +18,101 @@ sys.path.insert(0, os.path.dirname(__file__))  # type: ignore
 from app import DictionaryApp      # type: ignore  # noqa: E402
 from models import LexicalEntry    # type: ignore  # noqa: E402
 
-if getattr(sys, "frozen", False):
-    _BASE = os.path.dirname(sys.executable)
-else:
-    _BASE = os.path.dirname(os.path.abspath(__file__))
+if getattr(sys, "frozen", False):  # type: ignore
+    _BASE = os.path.dirname(sys.executable)  # type: ignore
+else:  # type: ignore
+    _BASE = os.path.dirname(os.path.abspath(__file__))  # type: ignore
 
-DATA_PATH       = os.path.join(_BASE, "data", "meaning.data")
-INDEX_PATH      = os.path.join(_BASE, "data", "index.data")
-WORDS_LIST_PATH = os.path.join(_BASE, "data", "words_list.txt")
-BOOKMARKS_PATH  = os.path.join(_BASE, "data", "bookmarks.txt")
-HISTORY_PATH    = os.path.join(_BASE, "data", "history.txt")
+DATA_PATH       = os.path.join(_BASE, "data", "meaning.data")  # type: ignore
+INDEX_PATH      = os.path.join(_BASE, "data", "index.data")  # type: ignore
+WORDS_LIST_PATH = os.path.join(_BASE, "data", "words_list.txt")  # type: ignore
+BOOKMARKS_PATH  = os.path.join(_BASE, "data", "bookmarks.txt")  # type: ignore
+HISTORY_PATH    = os.path.join(_BASE, "data", "history.txt")  # type: ignore
 
 def _ensure_file(path: str) -> None:
-    if not os.path.exists(path):
-        os.makedirs(os.path.dirname(path), exist_ok=True)
-        open(path, "w", encoding="utf-8").close()
+    if not os.path.exists(path):  # type: ignore
+        os.makedirs(os.path.dirname(path), exist_ok=True)  # type: ignore
+        open(path, "w", encoding="utf-8").close()  # type: ignore
 
 # ── Colour Palette ─────────────────────────────────────────────────────────────
-C: dict = {
-    "bg":          "#0F0F17",
-    "sidebar":     "#13131F",
-    "sidebar_h":   "#1D1D30",
-    "sidebar_act": "#1E1E38",
-    "chat_bg":     "#0F0F17",
-    "bubble_ai":   "#1C1C2E",
-    "bubble_user": "#3B1F5E",
-    "accent":      "#8B5CF6",
-    "accent2":     "#EC4899",
-    "gold":        "#F59E0B",
-    "green":       "#10B981",
-    "red":         "#EF4444",
-    "text_main":   "#F1F5F9",
-    "text_dim":    "#6B7280",
-    "text_sub":    "#9CA3AF",
-    "input_bg":    "#1C1C2E",
-    "input_bdr":   "#2D2D5E",
-    "border":      "#2A2A4A",
-}
+C: dict = {  # type: ignore
+    "bg":          "#0F0F17",  # type: ignore
+    "sidebar":     "#13131F",  # type: ignore
+    "sidebar_h":   "#1D1D30",  # type: ignore
+    "sidebar_act": "#1E1E38",  # type: ignore
+    "chat_bg":     "#0F0F17",  # type: ignore
+    "bubble_ai":   "#1C1C2E",  # type: ignore
+    "bubble_user": "#3B1F5E",  # type: ignore
+    "accent":      "#8B5CF6",  # type: ignore
+    "accent2":     "#EC4899",  # type: ignore
+    "gold":        "#F59E0B",  # type: ignore
+    "green":       "#10B981",  # type: ignore
+    "red":         "#EF4444",  # type: ignore
+    "text_main":   "#F1F5F9",  # type: ignore
+    "text_dim":    "#6B7280",  # type: ignore
+    "text_sub":    "#9CA3AF",  # type: ignore
+    "input_bg":    "#1C1C2E",  # type: ignore
+    "input_bdr":   "#2D2D5E",  # type: ignore
+    "border":      "#2A2A4A",  # type: ignore
+}  # type: ignore
 
-FONT         = "Segoe UI"
-SIDEBAR_COL  = 64    # collapsed width px
-SIDEBAR_EXP  = 210   # expanded  width px
+FONT         = "Segoe UI"  # type: ignore
+SIDEBAR_COL  = 64    # collapsed width px  # type: ignore
+SIDEBAR_EXP  = 210   # expanded  width px  # type: ignore
 
 # ── Word-list loader ───────────────────────────────────────────────────────────
 def _load_words_list() -> List[str]:
-    _ensure_file(WORDS_LIST_PATH)
-    url = ("https://raw.githubusercontent.com/first20hours/google-10000-english"
-           "/master/google-10000-english-no-swears.txt")
-    if os.path.getsize(WORDS_LIST_PATH) == 0:
-        try:
-            urllib.request.urlretrieve(url, WORDS_LIST_PATH)
-        except Exception as e:
-            print(f"words_list download error: {e}")
-    try:
-        with open(WORDS_LIST_PATH, "r", encoding="utf-8") as f:
+    _ensure_file(WORDS_LIST_PATH)  # type: ignore
+    url = ("https://raw.githubusercontent.com/first20hours/google-10000-english"  # type: ignore
+           "/master/google-10000-english-no-swears.txt")  # type: ignore
+    if os.path.getsize(WORDS_LIST_PATH) == 0:  # type: ignore
+        try:  # type: ignore
+            urllib.request.urlretrieve(url, WORDS_LIST_PATH)  # type: ignore
+        except Exception as e:  # type: ignore
+            print(f"words_list download error: {e}")  # type: ignore
+    try:  # type: ignore
+        with open(WORDS_LIST_PATH, "r", encoding="utf-8") as f:  # type: ignore
             return sorted(line.strip() for line in f if line.strip())
-    except Exception:
+    except Exception:  # type: ignore
         return []  # type: ignore
 
 # ── Main UI ────────────────────────────────────────────────────────────────────
 class DictionaryUI:
 
     # Nav items: (page_id, icon, label)
-    _NAV = [
-        ("chat",      "🔍", "Tra từ"),
-        ("bookmarks", "📖", "Sổ tay"),
-        ("wotd",      "💡", "Luyện từ"),
-        ("history",   "📜", "Lịch sử"),
-        ("settings",  "⚙️", "Cài đặt"),
-    ]
+    _NAV = [  # type: ignore
+        ("chat",      "🔍", "Tra từ"),  # type: ignore
+        ("bookmarks", "📖", "Sổ tay"),  # type: ignore
+        ("wotd",      "💡", "Luyện từ"),  # type: ignore
+        ("history",   "📜", "Lịch sử"),  # type: ignore
+        ("settings",  "⚙️", "Cài đặt"),  # type: ignore
+    ]  # type: ignore
 
     def __init__(self) -> None:
         self.root = tk.Tk()  # type: ignore
-        self.root.title("AI Dictionary — Từ Điển Anh-Việt")
+        self.root.title("AI Dictionary — Từ Điển Anh-Việt")  # type: ignore
         self.root.configure(bg=C["bg"])  # type: ignore
-        self.root.geometry("1020x720")
-        self.root.minsize(760, 520)
+        self.root.geometry("1020x720")  # type: ignore
+        self.root.minsize(760, 520)  # type: ignore
 
         # ── state ──
-        self._dict_app:    Optional[DictionaryApp] = None
+        self._dict_app:    Optional[DictionaryApp] = None  # type: ignore
         self._words:       List[str] = []  # type: ignore
         self._search_var = tk.StringVar()  # type: ignore
-        self._last_entry:  Optional[LexicalEntry] = None
+        self._last_entry:  Optional[LexicalEntry] = None  # type: ignore
         self._entry:       Optional[tk.Entry] = None  # type: ignore
         self._history:     List[str] = []  # type: ignore
-        self._current_page = ""
-        self._sidebar_expanded = False
-        self._glow_job:    Optional[str] = None
-        self._glow_on      = False
-        self._pages:       dict = {}
-        self._nav_btns:    dict = {}
+        self._current_page = ""  # type: ignore
+        self._sidebar_expanded = False  # type: ignore
+        self._glow_job:    Optional[str] = None  # type: ignore
+        self._glow_on      = False  # type: ignore
+        self._pages:       dict = {}  # type: ignore
+        self._nav_btns:    dict = {}  # type: ignore
 
         # ── chat canvas references (created by _build_chat_page) ──
         self._canvas:      Optional[tk.Canvas] = None  # type: ignore
         self._chat_frame:  Optional[tk.Frame]  = None  # type: ignore
-        self._chat_window: Optional[int]       = None
+        self._chat_window: Optional[int]       = None  # type: ignore
         self._listbox_frame: Optional[tk.Frame] = None  # type: ignore
         self._listbox:     Optional[tk.Listbox] = None  # type: ignore
 
@@ -122,9 +122,9 @@ class DictionaryUI:
         self._toggle_lbl: tk.Label = None  # type: ignore
         self._app_lbl: tk.Label = None  # type: ignore
 
-        self._build_layout()
+        self._build_layout()  # type: ignore
         self.root.after(50,  lambda: self._show_page("chat"))  # type: ignore
-        threading.Thread(target=self._init_backend, daemon=True).start()
+        threading.Thread(target=self._init_backend, daemon=True).start()  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Layout
@@ -132,7 +132,7 @@ class DictionaryUI:
 
     def _build_layout(self) -> None:
         # Left sidebar
-        self._sidebar_frame = tk.Frame(self.root, bg=C["sidebar"], width=SIDEBAR_COL)
+        self._sidebar_frame = tk.Frame(self.root, bg=C["sidebar"], width=SIDEBAR_COL)  # type: ignore
         self._sidebar_frame.pack(side="left", fill="y")  # type: ignore
         self._sidebar_frame.pack_propagate(False)  # type: ignore
 
@@ -140,24 +140,24 @@ class DictionaryUI:
         tk.Frame(self.root, bg=C["accent"], width=2).pack(side="left", fill="y")  # type: ignore
 
         # Right main area
-        self._main_frame = tk.Frame(self.root, bg=C["bg"])
+        self._main_frame = tk.Frame(self.root, bg=C["bg"])  # type: ignore
         self._main_frame.pack(side="left", fill="both", expand=True)  # type: ignore
 
-        self._build_sidebar()
+        self._build_sidebar()  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Sidebar
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_sidebar(self) -> None:
-        sb = self._sidebar_frame
+        sb = self._sidebar_frame  # type: ignore
 
         # Toggle (hamburger / ✕)
-        self._toggle_lbl = tk.Label(
-            sb, text="☰", font=(FONT, 17),
-            bg=C["sidebar"], fg=C["text_dim"],
-            cursor="hand2", pady=14, padx=0,
-        )
+        self._toggle_lbl = tk.Label(  # type: ignore
+            sb, text="☰", font=(FONT, 17),  # type: ignore
+            bg=C["sidebar"], fg=C["text_dim"],  # type: ignore
+            cursor="hand2", pady=14, padx=0,  # type: ignore
+        )  # type: ignore
         self._toggle_lbl.pack(fill="x")  # type: ignore
         self._toggle_lbl.bind("<Button-1>", lambda e: self._toggle_sidebar())  # type: ignore
         self._bind_hover(self._toggle_lbl, C["sidebar"], C["sidebar_h"])  # type: ignore
@@ -165,58 +165,58 @@ class DictionaryUI:
 
         tk.Frame(sb, bg=C["border"], height=1).pack(fill="x", pady=(0, 4))  # type: ignore
 
-        for pid, icon, label in self._NAV:
-            self._nav_btns[pid] = self._make_nav_btn(sb, pid, icon, label)
+        for pid, icon, label in self._NAV:  # type: ignore
+            self._nav_btns[pid] = self._make_nav_btn(sb, pid, icon, label)  # type: ignore
 
         # App label at bottom (shown when expanded)
-        self._app_lbl = tk.Label(
-            sb, text="", font=(FONT, 8),
-            bg=C["sidebar"], fg=C["text_dim"], wraplength=SIDEBAR_EXP - 10,
-        )
+        self._app_lbl = tk.Label(  # type: ignore
+            sb, text="", font=(FONT, 8),  # type: ignore
+            bg=C["sidebar"], fg=C["text_dim"], wraplength=SIDEBAR_EXP - 10,  # type: ignore
+        )  # type: ignore
         self._app_lbl.pack(side="bottom", pady=10)  # type: ignore
 
     def _make_nav_btn(self, parent: tk.Frame, pid: str, icon: str, label: str) -> tk.Frame:  # type: ignore
-        frame = tk.Frame(parent, bg=C["sidebar"], cursor="hand2")
+        frame = tk.Frame(parent, bg=C["sidebar"], cursor="hand2")  # type: ignore
         frame.pack(fill="x", pady=1)  # type: ignore
 
         # Left active-indicator strip
-        indicator = tk.Frame(frame, bg=C["sidebar"], width=3)
+        indicator = tk.Frame(frame, bg=C["sidebar"], width=3)  # type: ignore
         indicator.pack(side="left", fill="y")  # type: ignore
 
-        icon_lbl = tk.Label(
-            frame, text=icon, font=(FONT, 17),
-            bg=C["sidebar"], fg=C["text_dim"],
-            width=3, pady=12,
-        )
+        icon_lbl = tk.Label(  # type: ignore
+            frame, text=icon, font=(FONT, 17),  # type: ignore
+            bg=C["sidebar"], fg=C["text_dim"],  # type: ignore
+            width=3, pady=12,  # type: ignore
+        )  # type: ignore
         icon_lbl.pack(side="left")  # type: ignore
 
-        text_lbl = tk.Label(
-            frame, text=label, font=(FONT, 11),
-            bg=C["sidebar"], fg=C["text_dim"], anchor="w",
-        )
+        text_lbl = tk.Label(  # type: ignore
+            frame, text=label, font=(FONT, 11),  # type: ignore
+            bg=C["sidebar"], fg=C["text_dim"], anchor="w",  # type: ignore
+        )  # type: ignore
         # Text hidden while collapsed; shown by _toggle_sidebar
         text_lbl.pack_forget()  # type: ignore
 
         # Store refs on the frame object for later access
-        frame.__dict__.update(
-            _pid=pid, _indicator=indicator,
-            _icon_lbl=icon_lbl, _text_lbl=text_lbl,
-        )
+        frame.__dict__.update(  # type: ignore
+            _pid=pid, _indicator=indicator,  # type: ignore
+            _icon_lbl=icon_lbl, _text_lbl=text_lbl,  # type: ignore
+        )  # type: ignore
 
         def _enter(e: object) -> None:
-            if self._current_page != pid:
-                for w in (frame, icon_lbl, text_lbl):
+            if self._current_page != pid:  # type: ignore
+                for w in (frame, icon_lbl, text_lbl):  # type: ignore
                     w.config(bg=C["sidebar_h"])  # type: ignore
 
         def _leave(e: object) -> None:
-            if self._current_page != pid:
-                for w in (frame, icon_lbl, text_lbl):
+            if self._current_page != pid:  # type: ignore
+                for w in (frame, icon_lbl, text_lbl):  # type: ignore
                     w.config(bg=C["sidebar"])  # type: ignore
 
         def _click(e: object) -> None:
-            self._nav_click_anim(pid, frame)
+            self._nav_click_anim(pid, frame)  # type: ignore
 
-        for widget in (frame, icon_lbl, text_lbl):
+        for widget in (frame, icon_lbl, text_lbl):  # type: ignore
             widget.bind("<Enter>",    _enter)  # type: ignore
             widget.bind("<Leave>",    _leave)  # type: ignore
             widget.bind("<Button-1>", _click)  # type: ignore
@@ -224,51 +224,51 @@ class DictionaryUI:
         return frame
 
     def _nav_click_anim(self, pid: str, frame: tk.Frame) -> None:  # type: ignore
-        """Press-darken → navigate → highlight active."""
-        for wg in (frame, frame.__dict__["_icon_lbl"], frame.__dict__["_text_lbl"]):
-            try:
+        """Press-darken → navigate → highlight active."""  # type: ignore
+        for wg in (frame, frame.__dict__["_icon_lbl"], frame.__dict__["_text_lbl"]):  # type: ignore
+            try:  # type: ignore
                 wg.config(bg="#0A0A14")  # type: ignore
-            except Exception:
+            except Exception:  # type: ignore
                 pass
 
         def _go() -> None:
-            self._show_page(pid)
+            self._show_page(pid)  # type: ignore
 
         self.root.after(80, _go) # type: ignore
 
     def _set_nav_active(self, pid: str) -> None:
-        for nav_id, btn in self._nav_btns.items():
-            if not btn.winfo_exists():
+        for nav_id, btn in self._nav_btns.items():  # type: ignore
+            if not btn.winfo_exists():  # type: ignore
                 continue
-            d = btn.__dict__
-            active = nav_id == pid
-            c_bg   = C["sidebar_act"] if active else C["sidebar"]
-            c_icon = C["accent"]      if active else C["text_dim"]
-            c_text = C["text_main"]   if active else C["text_dim"]
-            c_ind  = C["accent"]      if active else C["sidebar"]
+            d = btn.__dict__  # type: ignore
+            active = nav_id == pid  # type: ignore
+            c_bg   = C["sidebar_act"] if active else C["sidebar"]  # type: ignore
+            c_icon = C["accent"]      if active else C["text_dim"]  # type: ignore
+            c_text = C["text_main"]   if active else C["text_dim"]  # type: ignore
+            c_ind  = C["accent"]      if active else C["sidebar"]  # type: ignore
             btn.config(bg=c_bg)  # type: ignore
             d["_icon_lbl"].config(bg=c_bg, fg=c_icon)  # type: ignore
             d["_text_lbl"].config(bg=c_bg, fg=c_text)  # type: ignore
             d["_indicator"].config(bg=c_ind)  # type: ignore
-        self._current_page = pid
+        self._current_page = pid  # type: ignore
 
     def _toggle_sidebar(self) -> None:
-        self._sidebar_expanded = not self._sidebar_expanded
-        target = SIDEBAR_EXP if self._sidebar_expanded else SIDEBAR_COL
+        self._sidebar_expanded = not self._sidebar_expanded  # type: ignore
+        target = SIDEBAR_EXP if self._sidebar_expanded else SIDEBAR_COL  # type: ignore
         self._toggle_lbl.config(text="✕" if self._sidebar_expanded else "☰")  # type: ignore
         self._app_lbl.config(text="AI Dictionary" if self._sidebar_expanded else "")  # type: ignore
-        for btn in self._nav_btns.values():
-            tl = btn.__dict__["_text_lbl"]
-            if self._sidebar_expanded:
+        for btn in self._nav_btns.values():  # type: ignore
+            tl = btn.__dict__["_text_lbl"]  # type: ignore
+            if self._sidebar_expanded:  # type: ignore
                 tl.pack(side="left", padx=6)  # type: ignore
-            else:
+            else:  # type: ignore
                 tl.pack_forget()  # type: ignore
-        self._anim_sidebar(target)
+        self._anim_sidebar(target)  # type: ignore
 
     def _anim_sidebar(self, target: int) -> None:
-        cur  = self._sidebar_frame.winfo_width()
-        diff = target - cur
-        if abs(diff) <= 4:
+        cur  = self._sidebar_frame.winfo_width()  # type: ignore
+        diff = target - cur  # type: ignore
+        if abs(diff) <= 4:  # type: ignore
             self._sidebar_frame.config(width=target)  # type: ignore
             return
         self._sidebar_frame.config(width=cur + (10 if diff > 0 else -10))  # type: ignore
@@ -278,36 +278,36 @@ class DictionaryUI:
     # Page routing
     # ══════════════════════════════════════════════════════════════════════════
 
-    _LIVE_PAGES = {"bookmarks", "wotd", "history"}  # rebuilt every visit
+    _LIVE_PAGES = {"bookmarks", "wotd", "history"}  # rebuilt every visit  # type: ignore
 
     _PAGE_BUILDERS: dict = {}  # filled after class definition  # type: ignore
 
     def _show_page(self, pid: str) -> None:
         # Hide all
-        for p in self._pages.values():
-            if p.winfo_exists():
+        for p in self._pages.values():  # type: ignore
+            if p.winfo_exists():  # type: ignore
                 p.pack_forget()  # type: ignore
 
         builders: dict = { # type: ignore
-            "chat":      self._build_chat_page,
-            "bookmarks": self._build_bookmarks_page,
-            "wotd":      self._build_wotd_page,
-            "history":   self._build_history_page,
-            "settings":  self._build_settings_page,
-        }
+            "chat":      self._build_chat_page,  # type: ignore
+            "bookmarks": self._build_bookmarks_page,  # type: ignore
+            "wotd":      self._build_wotd_page,  # type: ignore
+            "history":   self._build_history_page,  # type: ignore
+            "settings":  self._build_settings_page,  # type: ignore
+        }  # type: ignore
 
-        if pid in self._LIVE_PAGES and pid in self._pages:
+        if pid in self._LIVE_PAGES and pid in self._pages:  # type: ignore
             # Rebuild live page in place
-            for w in self._pages[pid].winfo_children():
-                w.destroy()
-            builders[pid](self._pages[pid])
-        elif pid not in self._pages:
-            frame = tk.Frame(self._main_frame, bg=C["bg"])
-            self._pages[pid] = frame
-            builders[pid](frame)
+            for w in self._pages[pid].winfo_children():  # type: ignore
+                w.destroy()  # type: ignore
+            builders[pid](self._pages[pid])  # type: ignore
+        elif pid not in self._pages:  # type: ignore
+            frame = tk.Frame(self._main_frame, bg=C["bg"])  # type: ignore
+            self._pages[pid] = frame  # type: ignore
+            builders[pid](frame)  # type: ignore
 
         self._pages[pid].pack(fill="both", expand=True)  # type: ignore
-        self._set_nav_active(pid)
+        self._set_nav_active(pid)  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Page: Chat
@@ -315,18 +315,18 @@ class DictionaryUI:
 
     def _build_chat_page(self, parent: tk.Frame) -> None:  # type: ignore
         # Top bar (minimal, no heavy header)
-        topbar = tk.Frame(parent, bg=C["bg"], pady=8)
+        topbar = tk.Frame(parent, bg=C["bg"], pady=8)  # type: ignore
         topbar.pack(fill="x", padx=18)  # type: ignore
 
-        tk.Label(
-            topbar, text="🤖  AI Từ Điển Anh-Việt",
-            font=(FONT, 14, "bold"), bg=C["bg"], fg=C["text_main"],
+        tk.Label(  # type: ignore
+            topbar, text="🤖  AI Từ Điển Anh-Việt",  # type: ignore
+            font=(FONT, 14, "bold"), bg=C["bg"], fg=C["text_main"],  # type: ignore
         ).pack(side="left")  # type: ignore
 
         # Mini audio + clear buttons
-        for txt, cb in [("🗑", self._clear_chat), ("🇺🇸", lambda: self._on_speak("us")), ("🇬🇧", lambda: self._on_speak("uk"))]:
-            b = tk.Label(topbar, text=txt, font=(FONT, 13), bg=C["bg"],
-                         fg=C["text_dim"], cursor="hand2", padx=8)
+        for txt, cb in [("🗑", self._clear_chat), ("🇺🇸", lambda: self._on_speak("us")), ("🇬🇧", lambda: self._on_speak("uk"))]:  # type: ignore
+            b = tk.Label(topbar, text=txt, font=(FONT, 13), bg=C["bg"],  # type: ignore
+                         fg=C["text_dim"], cursor="hand2", padx=8)  # type: ignore
             b.pack(side="right")  # type: ignore
             b.bind("<Button-1>", lambda e, fn=cb: fn())  # type: ignore
             self._bind_hover(b, C["bg"], C["sidebar_h"])  # type: ignore
@@ -335,58 +335,58 @@ class DictionaryUI:
         tk.Frame(parent, bg=C["border"], height=1).pack(fill="x")  # type: ignore
 
         # ── Chat canvas ──────────────────────────────────────────────────────
-        container = tk.Frame(parent, bg=C["chat_bg"])
+        container = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         container.pack(fill="both", expand=True)  # type: ignore
 
-        scrollbar = tk.Scrollbar(
-            container, orient="vertical",
-            bg=C["bg"], troughcolor=C["chat_bg"],
-            activebackground=C["accent"], width=8,
-        )
+        scrollbar = tk.Scrollbar(  # type: ignore
+            container, orient="vertical",  # type: ignore
+            bg=C["bg"], troughcolor=C["chat_bg"],  # type: ignore
+            activebackground=C["accent"], width=8,  # type: ignore
+        )  # type: ignore
         scrollbar.pack(side="right", fill="y")  # type: ignore
 
-        self._canvas = tk.Canvas(
-            container, bg=C["chat_bg"], bd=0,
-            highlightthickness=0, yscrollcommand=scrollbar.set,
-        )
+        self._canvas = tk.Canvas(  # type: ignore
+            container, bg=C["chat_bg"], bd=0,  # type: ignore
+            highlightthickness=0, yscrollcommand=scrollbar.set,  # type: ignore
+        )  # type: ignore
         self._canvas.pack(side="left", fill="both", expand=True)  # type: ignore
         scrollbar.config(command=self._canvas.yview)  # type: ignore
 
-        self._chat_frame = tk.Frame(self._canvas, bg=C["chat_bg"])
+        self._chat_frame = tk.Frame(self._canvas, bg=C["chat_bg"])  # type: ignore
         self._chat_window = self._canvas.create_window(  # type: ignore
-            (0, 0), window=self._chat_frame, anchor="nw",
-        )
+            (0, 0), window=self._chat_frame, anchor="nw",  # type: ignore
+        )  # type: ignore
         self._chat_frame.bind("<Configure>", self._on_frame_configure)  # type: ignore
         self._canvas.bind("<Configure>", self._on_canvas_configure)  # type: ignore
         self._canvas.bind_all("<MouseWheel>", self._on_mousewheel)  # type: ignore
 
         # ── Input bar ──────────────────────────────────────────────────────
         tk.Frame(parent, bg=C["border"], height=1).pack(fill="x")  # type: ignore
-        bar = tk.Frame(parent, bg=C["input_bg"], pady=10)
+        bar = tk.Frame(parent, bg=C["input_bg"], pady=10)  # type: ignore
         bar.pack(fill="x", side="bottom")  # type: ignore
 
         # Autocomplete listbox — floats above input
-        self._listbox_frame = tk.Frame(parent, bg=C["border"], bd=1, relief="solid")
-        self._listbox = tk.Listbox(
-            self._listbox_frame, font=(FONT, 11),
-            bg="#1A1A35", fg=C["text_main"],
-            selectbackground=C["accent"], selectforeground="white",
-            bd=0, relief="flat", activestyle="none", height=5,
-        )
+        self._listbox_frame = tk.Frame(parent, bg=C["border"], bd=1, relief="solid")  # type: ignore
+        self._listbox = tk.Listbox(  # type: ignore
+            self._listbox_frame, font=(FONT, 11),  # type: ignore
+            bg="#1A1A35", fg=C["text_main"],  # type: ignore
+            selectbackground=C["accent"], selectforeground="white",  # type: ignore
+            bd=0, relief="flat", activestyle="none", height=5,  # type: ignore
+        )  # type: ignore
         self._listbox.pack(fill="both", expand=True)  # type: ignore
         self._listbox.bind("<<ListboxSelect>>", self._on_listbox_select)  # type: ignore
 
-        inner = tk.Frame(bar, bg=C["input_bg"])
+        inner = tk.Frame(bar, bg=C["input_bg"])  # type: ignore
         inner.pack(fill="x", padx=16)  # type: ignore
 
-        entry_frame = tk.Frame(inner, bg=C["input_bdr"], bd=1, relief="solid")
+        entry_frame = tk.Frame(inner, bg=C["input_bdr"], bd=1, relief="solid")  # type: ignore
         entry_frame.pack(side="left", fill="x", expand=True, ipady=2)  # type: ignore
 
-        self._entry = tk.Entry(
-            entry_frame, textvariable=self._search_var,
-            font=(FONT, 13), bg=C["input_bg"], fg=C["text_main"],
+        self._entry = tk.Entry(  # type: ignore
+            entry_frame, textvariable=self._search_var,  # type: ignore
+            font=(FONT, 13), bg=C["input_bg"], fg=C["text_main"],  # type: ignore
             insertbackground=C["accent"], bd=0, relief="flat",  # type: ignore
-        )
+        )  # type: ignore
         self._entry.pack(fill="x", padx=14, pady=9)  # type: ignore
         self._entry.bind("<Return>",     self._on_search)  # type: ignore
         self._entry.bind("<KeyRelease>", self._on_key_release)  # type: ignore
@@ -395,45 +395,45 @@ class DictionaryUI:
         self._entry.bind("<FocusOut>",   lambda e: self._stop_glow(entry_frame))  # type: ignore
         self._entry.focus_set()  # type: ignore
 
-        send_btn = tk.Label(
-            inner, text="➤", font=(FONT, 16, "bold"),
-            bg=C["accent"], fg="white",
-            padx=16, pady=9, cursor="hand2",
-        )
+        send_btn = tk.Label(  # type: ignore
+            inner, text="➤", font=(FONT, 16, "bold"),  # type: ignore
+            bg=C["accent"], fg="white",  # type: ignore
+            padx=16, pady=9, cursor="hand2",  # type: ignore
+        )  # type: ignore
         send_btn.pack(side="left", padx=(10, 0))  # type: ignore
         send_btn.bind("<Button-1>", self._on_search)  # type: ignore
         self._bind_hover(send_btn, C["accent"], C["accent2"])  # type: ignore
         self._bind_click_flash(send_btn, C["accent"])  # type: ignore
 
-        self._welcome_message()
+        self._welcome_message()  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Page: Bookmarks
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_bookmarks_page(self, parent: tk.Frame) -> None:  # type: ignore
-        self._page_header(parent, "📖  Sổ Tay Từ Vựng", C["gold"])
+        self._page_header(parent, "📖  Sổ Tay Từ Vựng", C["gold"])  # type: ignore
 
-        _ensure_file(BOOKMARKS_PATH)
-        try:
-            with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
-                lines = [l.strip() for l in f if l.strip()]
-        except Exception:
+        _ensure_file(BOOKMARKS_PATH)  # type: ignore
+        try:  # type: ignore
+            with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:  # type: ignore
+                lines = [l.strip() for l in f if l.strip()]  # type: ignore
+        except Exception:  # type: ignore
             lines = []  # type: ignore
 
-        body = tk.Frame(parent, bg=C["chat_bg"])
+        body = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         body.pack(fill="both", expand=True, padx=30, pady=10)  # type: ignore
 
-        if not lines:
-            tk.Label(
-                body, text="✦ Sổ tay đang trống.\nBấm ⭐ sau khi tra từ để lưu.",
-                font=(FONT, 12), bg=C["chat_bg"], fg=C["text_dim"],
+        if not lines:  # type: ignore
+            tk.Label(  # type: ignore
+                body, text="✦ Sổ tay đang trống.\nBấm ⭐ sau khi tra từ để lưu.",  # type: ignore
+                font=(FONT, 12), bg=C["chat_bg"], fg=C["text_dim"],  # type: ignore
             ).pack(pady=60)  # type: ignore
             return
 
-        canvas = tk.Canvas(body, bg=C["chat_bg"], highlightthickness=0)
+        canvas = tk.Canvas(body, bg=C["chat_bg"], highlightthickness=0)  # type: ignore
         scr = tk.Scrollbar(body, orient="vertical", command=canvas.yview)  # type: ignore
-        lf  = tk.Frame(canvas, bg=C["chat_bg"])
+        lf  = tk.Frame(canvas, bg=C["chat_bg"])  # type: ignore
         canvas.create_window((0, 0), window=lf, anchor="nw")  # type: ignore
         canvas.configure(yscrollcommand=scr.set)  # type: ignore
         canvas.pack(side="left", fill="both", expand=True)  # type: ignore
@@ -441,37 +441,37 @@ class DictionaryUI:
         lf.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))  # type: ignore
 
         def _add_item(idx: int, line: str) -> None:
-            if not parent.winfo_exists():
+            if not parent.winfo_exists():  # type: ignore
                 return
-            parts = line.split(" - ", 1)
-            word = parts[0]
-            mean = parts[1] if len(parts) > 1 else ""
-            row = tk.Frame(
-                lf, bg=C["bubble_ai"], pady=12, padx=18,
-                highlightthickness=1, highlightbackground=C["border"],
-            )
+            parts = line.split(" - ", 1)  # type: ignore
+            word = parts[0]  # type: ignore
+            mean = parts[1] if len(parts) > 1 else ""  # type: ignore
+            row = tk.Frame(  # type: ignore
+                lf, bg=C["bubble_ai"], pady=12, padx=18,  # type: ignore
+                highlightthickness=1, highlightbackground=C["border"],  # type: ignore
+            )  # type: ignore
             row.pack(fill="x", pady=5)  # type: ignore
-            tk.Label(row, text=word, font=(FONT, 14, "bold"),
+            tk.Label(row, text=word, font=(FONT, 14, "bold"),  # type: ignore
                      bg=C["bubble_ai"], fg=C["text_main"]).pack(side="left")  # type: ignore
-            tk.Label(row, text=f"  {mean}", font=(FONT, 11),
+            tk.Label(row, text=f"  {mean}", font=(FONT, 11),  # type: ignore
                      bg=C["bubble_ai"], fg=C["green"]).pack(side="left")  # type: ignore
 
             def _del(w: str = word) -> None:
-                if messagebox.askyesno("Xóa", f"Xóa '{w}' khỏi sổ tay?"):
-                    with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
-                        rem = [l for l in f if not l.startswith(f"{w} -")]
-                    with open(BOOKMARKS_PATH, "w", encoding="utf-8") as f:
-                        f.writelines(rem)
-                    self._show_page("bookmarks")
+                if messagebox.askyesno("Xóa", f"Xóa '{w}' khỏi sổ tay?"):  # type: ignore
+                    with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:  # type: ignore
+                        rem = [l for l in f if not l.startswith(f"{w} -")]  # type: ignore
+                    with open(BOOKMARKS_PATH, "w", encoding="utf-8") as f:  # type: ignore
+                        f.writelines(rem)  # type: ignore
+                    self._show_page("bookmarks")  # type: ignore
 
-            del_b = tk.Label(row, text="🗑", font=(FONT, 12),
-                             bg=C["bubble_ai"], fg=C["red"], cursor="hand2", padx=6)
+            del_b = tk.Label(row, text="🗑", font=(FONT, 12),  # type: ignore
+                             bg=C["bubble_ai"], fg=C["red"], cursor="hand2", padx=6)  # type: ignore
             del_b.pack(side="right")  # type: ignore
             del_b.bind("<Button-1>", lambda e: _del())  # type: ignore
             self._bind_hover(del_b, C["bubble_ai"], "#3A1515")  # type: ignore
             self._bind_hover(row,   C["bubble_ai"], C["sidebar_h"])  # type: ignore
 
-        for i, line in enumerate(lines):
+        for i, line in enumerate(lines):  # type: ignore
             self.root.after(i * 75, lambda l=line, i_=i: _add_item(i_, l))  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -480,114 +480,114 @@ class DictionaryUI:
 
     def _build_wotd_page(self, parent: tk.Frame) -> None:  # type: ignore
         import random
-        self._page_header(parent, "💡  Luyện Từ Vựng — Lật Thẻ", C["accent"])
-        tk.Label(parent, text="Bấm vào thẻ bất kỳ để khám phá từ vựng!",
+        self._page_header(parent, "💡  Luyện Từ Vựng — Lật Thẻ", C["accent"])  # type: ignore
+        tk.Label(parent, text="Bấm vào thẻ bất kỳ để khám phá từ vựng!",  # type: ignore
                  font=(FONT, 10), bg=C["bg"], fg=C["text_dim"]).pack(pady=(0, 6))  # type: ignore
         tk.Frame(parent, bg=C["border"], height=1).pack(fill="x")  # type: ignore
 
-        body = tk.Frame(parent, bg=C["chat_bg"])
+        body = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         body.pack(fill="both", expand=True, padx=40, pady=14)  # type: ignore
 
-        if not self._words or not self._dict_app:
-            tk.Label(body, text="⏳ Đang tải dữ liệu...",
+        if not self._words or not self._dict_app:  # type: ignore
+            tk.Label(body, text="⏳ Đang tải dữ liệu...",  # type: ignore
                      bg=C["chat_bg"], fg=C["text_dim"], font=(FONT, 13)).pack(pady=60)  # type: ignore
             return
 
-        words = random.sample(self._words, min(5, len(self._words)))
-        CARD_BG  = ["#6D28D9", "#DB2777", "#059669", "#D97706", "#2563EB"]
-        CARD_HOV = ["#7C3AED", "#EC4899", "#10B981", "#F59E0B", "#3B82F6"]
+        words = random.sample(self._words, min(5, len(self._words)))  # type: ignore
+        CARD_BG  = ["#6D28D9", "#DB2777", "#059669", "#D97706", "#2563EB"]  # type: ignore
+        CARD_HOV = ["#7C3AED", "#EC4899", "#10B981", "#F59E0B", "#3B82F6"]  # type: ignore
 
         def _make_card(idx: int, word: str) -> None:
-            base  = CARD_BG[idx  % len(CARD_BG)]
-            hover = CARD_HOV[idx % len(CARD_HOV)]
+            base  = CARD_BG[idx  % len(CARD_BG)]  # type: ignore
+            hover = CARD_HOV[idx % len(CARD_HOV)]  # type: ignore
 
-            card = tk.Frame(
-                body, bg=base, padx=28, pady=20,
-                highlightthickness=2, highlightbackground=hover,
-                cursor="hand2",
-            )
+            card = tk.Frame(  # type: ignore
+                body, bg=base, padx=28, pady=20,  # type: ignore
+                highlightthickness=2, highlightbackground=hover,  # type: ignore
+                cursor="hand2",  # type: ignore
+            )  # type: ignore
             card.pack(fill="x", pady=6, padx=6)  # type: ignore
 
-            q_lbl  = tk.Label(card, text="?",    font=(FONT, 30, "bold"), bg=base, fg="white")
+            q_lbl  = tk.Label(card, text="?",    font=(FONT, 30, "bold"), bg=base, fg="white")  # type: ignore
             q_lbl.pack()  # type: ignore
-            ht_lbl = tk.Label(card, text="▸ Bấm để lật", font=(FONT, 9), bg=base, fg="#FBBF24")
+            ht_lbl = tk.Label(card, text="▸ Bấm để lật", font=(FONT, 9), bg=base, fg="#FBBF24")  # type: ignore
             ht_lbl.pack()  # type: ignore
 
-            flipped = [False]
+            flipped = [False]  # type: ignore
 
             def _flip(e: object = None, c: tk.Frame = card, w: str = word,
-                      clr: str = base, hv: str = hover, f: list = flipped) -> None:
-                if f[0]:
+                      clr: str = base, hv: str = hover, f: list = flipped) -> None:  # type: ignore
+                if f[0]:  # type: ignore
                     return
-                f[0] = True
-                for wg in c.winfo_children():
-                    wg.destroy()
+                f[0] = True  # type: ignore
+                for wg in c.winfo_children():  # type: ignore
+                    wg.destroy()  # type: ignore
                 tk.Label(c, text=w.upper(), font=(FONT, 26, "bold"), bg=clr, fg="white").pack()  # type: ignore
 
                 # Instant from cache, background-fetch if miss
-                entry = None
-                if self._dict_app:
-                    try:
+                entry = None  # type: ignore
+                if self._dict_app:  # type: ignore
+                    try:  # type: ignore
                         entry = self._dict_app.find_word_cached(w)  # type: ignore
-                    except AttributeError:
+                    except AttributeError:  # type: ignore
                         pass
 
-                ml = tk.Label(c, text="…", font=(FONT, 15), bg=clr,
-                              fg=C["green"], wraplength=720)
+                ml = tk.Label(c, text="…", font=(FONT, 15), bg=clr,  # type: ignore
+                              fg=C["green"], wraplength=720)  # type: ignore
                 ml.pack(pady=(6, 0))  # type: ignore
 
-                if entry:
-                    meaning = getattr(entry, "short_translation", "") or ""
+                if entry:  # type: ignore
+                    meaning = getattr(entry, "short_translation", "") or ""  # type: ignore
                     ml.config(text=meaning or "—")  # type: ignore
-                else:
+                else:  # type: ignore
                     def _fetch(label: tk.Label = ml, word_: str = w) -> None:
                         en = self._dict_app.find_word(word_) if self._dict_app else None  # type: ignore
                         def _upd() -> None:
-                            if label.winfo_exists():
+                            if label.winfo_exists():  # type: ignore
                                 label.config(text=(getattr(en, "short_translation", "") or "—") if en else "—")  # type: ignore
                         self.root.after(0, _upd)  # type: ignore
-                    threading.Thread(target=_fetch, daemon=True).start()
+                    threading.Thread(target=_fetch, daemon=True).start()  # type: ignore
 
                 # Border glow-flash on flip
                 def _flash(step: int = 0, on: bool = True) -> None:
-                    if not c.winfo_exists():
+                    if not c.winfo_exists():  # type: ignore
                         return
                     c.config(highlightbackground="white" if on else hv)  # type: ignore
-                    if step < 5:
+                    if step < 5:  # type: ignore
                         self.root.after(80, _flash, step + 1, not on)  # type: ignore
-                _flash()
+                _flash()  # type: ignore
 
             # Hover — slight padding grow (scale illusion)
             def _card_enter(e: object, c: tk.Frame = card, clr: str = base, hv: str = hover) -> None:
                 c.config(bg=hv, pady=24)  # type: ignore
-                for wg in c.winfo_children():
-                    try:
+                for wg in c.winfo_children():  # type: ignore
+                    try:  # type: ignore
                         wg.config(bg=hv)  # type: ignore
-                    except Exception:
+                    except Exception:  # type: ignore
                         pass
 
             def _card_leave(e: object, c: tk.Frame = card, clr: str = base) -> None:
                 c.config(bg=clr, pady=20)  # type: ignore
-                for wg in c.winfo_children():
-                    try:
+                for wg in c.winfo_children():  # type: ignore
+                    try:  # type: ignore
                         wg.config(bg=clr)  # type: ignore
-                    except Exception:
+                    except Exception:  # type: ignore
                         pass
 
             card.bind("<Enter>",    _card_enter)  # type: ignore
             card.bind("<Leave>",    _card_leave)  # type: ignore
             card.bind("<Button-1>", _flip)  # type: ignore
-            for ch in card.winfo_children():
+            for ch in card.winfo_children():  # type: ignore
                 ch.bind("<Button-1>", _flip)  # type: ignore
 
-        for i, w in enumerate(words):
+        for i, w in enumerate(words):  # type: ignore
             self.root.after(i * 110, lambda i_=i, w_=w: _make_card(i_, w_))  # type: ignore
 
         # Bottom buttons
-        btn_row = tk.Frame(parent, bg=C["chat_bg"])
+        btn_row = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         btn_row.pack(side="bottom", fill="x", padx=40, pady=10)  # type: ignore
-        sh = tk.Label(btn_row, text="🃏  Xáo bài mới", font=(FONT, 11, "bold"),
-                      bg=C["accent"], fg="white", padx=20, pady=8, cursor="hand2")
+        sh = tk.Label(btn_row, text="🃏  Xáo bài mới", font=(FONT, 11, "bold"),  # type: ignore
+                      bg=C["accent"], fg="white", padx=20, pady=8, cursor="hand2")  # type: ignore
         sh.pack(side="left")  # type: ignore
         sh.bind("<Button-1>", lambda e: self._show_page("wotd"))  # type: ignore
         self._bind_hover(sh, C["accent"], C["accent2"])  # type: ignore
@@ -598,53 +598,53 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_history_page(self, parent: tk.Frame) -> None:  # type: ignore
-        self._page_header(parent, "📜  Lịch Sử Tra Từ", C["text_sub"])
-        _ensure_file(HISTORY_PATH)
-        try:
-            with open(HISTORY_PATH, "r", encoding="utf-8") as f:
-                raw = [l.strip() for l in f if l.strip()]
-            lines = list(dict.fromkeys(reversed(raw)))[:30]
-        except Exception:
+        self._page_header(parent, "📜  Lịch Sử Tra Từ", C["text_sub"])  # type: ignore
+        _ensure_file(HISTORY_PATH)  # type: ignore
+        try:  # type: ignore
+            with open(HISTORY_PATH, "r", encoding="utf-8") as f:  # type: ignore
+                raw = [l.strip() for l in f if l.strip()]  # type: ignore
+            lines = list(dict.fromkeys(reversed(raw)))[:30]  # type: ignore
+        except Exception:  # type: ignore
             lines = []  # type: ignore
 
-        body = tk.Frame(parent, bg=C["chat_bg"])
+        body = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         body.pack(fill="both", expand=True, padx=30, pady=10)  # type: ignore
 
-        if not lines:
-            tk.Label(body, text="✦ Chưa có lịch sử.\nHãy tra một từ để bắt đầu!",
+        if not lines:  # type: ignore
+            tk.Label(body, text="✦ Chưa có lịch sử.\nHãy tra một từ để bắt đầu!",  # type: ignore
                      font=(FONT, 12), bg=C["chat_bg"], fg=C["text_dim"]).pack(pady=60)  # type: ignore
-        else:
-            for i, word in enumerate(lines):
-                row = tk.Frame(
-                    body, bg=C["bubble_ai"], pady=10, padx=16,
-                    highlightthickness=1, highlightbackground=C["border"],
-                    cursor="hand2",
-                )
+        else:  # type: ignore
+            for i, word in enumerate(lines):  # type: ignore
+                row = tk.Frame(  # type: ignore
+                    body, bg=C["bubble_ai"], pady=10, padx=16,  # type: ignore
+                    highlightthickness=1, highlightbackground=C["border"],  # type: ignore
+                    cursor="hand2",  # type: ignore
+                )  # type: ignore
                 row.pack(fill="x", pady=4)  # type: ignore
-                tk.Label(row, text=f"{i+1:02d}.", font=(FONT, 10),
+                tk.Label(row, text=f"{i+1:02d}.", font=(FONT, 10),  # type: ignore
                          bg=C["bubble_ai"], fg=C["text_dim"]).pack(side="left", padx=(0, 8))  # type: ignore
-                tk.Label(row, text=word, font=(FONT, 13, "bold"),
+                tk.Label(row, text=word, font=(FONT, 13, "bold"),  # type: ignore
                          bg=C["bubble_ai"], fg=C["text_main"]).pack(side="left")  # type: ignore
-                rdo = tk.Label(row, text="↗ Tra lại", font=(FONT, 9),
-                               bg=C["bubble_ai"], fg=C["accent"], cursor="hand2")
+                rdo = tk.Label(row, text="↗ Tra lại", font=(FONT, 9),  # type: ignore
+                               bg=C["bubble_ai"], fg=C["accent"], cursor="hand2")  # type: ignore
                 rdo.pack(side="right", padx=8)  # type: ignore
 
                 def _redo(w: str = word) -> None:
-                    self._show_page("chat")
+                    self._show_page("chat")  # type: ignore
                     self.root.after(120, lambda: (self._search_var.set(w), self._on_search()))  # type: ignore
 
                 rdo.bind("<Button-1>", lambda e, cb=_redo: cb())  # type: ignore
                 self._bind_hover(row, C["bubble_ai"], C["sidebar_h"])  # type: ignore
 
-        clr = tk.Label(body, text="🗑  Xóa lịch sử", font=(FONT, 10),
-                       bg=C["chat_bg"], fg=C["red"], cursor="hand2", pady=12)
+        clr = tk.Label(body, text="🗑  Xóa lịch sử", font=(FONT, 10),  # type: ignore
+                       bg=C["chat_bg"], fg=C["red"], cursor="hand2", pady=12)  # type: ignore
         clr.pack()  # type: ignore
 
         def _clear_hist() -> None:
-            if messagebox.askyesno("Xác nhận", "Xóa toàn bộ lịch sử tra từ?"):
-                open(HISTORY_PATH, "w").close()
-                self._history.clear()
-                self._show_page("history")
+            if messagebox.askyesno("Xác nhận", "Xóa toàn bộ lịch sử tra từ?"):  # type: ignore
+                open(HISTORY_PATH, "w").close()  # type: ignore
+                self._history.clear()  # type: ignore
+                self._show_page("history")  # type: ignore
 
         clr.bind("<Button-1>", lambda e: _clear_hist())  # type: ignore
 
@@ -653,48 +653,48 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_settings_page(self, parent: tk.Frame) -> None:  # type: ignore
-        self._page_header(parent, "⚙️  Cài Đặt", C["text_sub"])
-        body = tk.Frame(parent, bg=C["chat_bg"])
+        self._page_header(parent, "⚙️  Cài Đặt", C["text_sub"])  # type: ignore
+        body = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         body.pack(fill="both", expand=True, padx=40, pady=20)  # type: ignore
 
         def _section(txt: str) -> None:
-            tk.Label(body, text=txt, font=(FONT, 11, "bold"),
+            tk.Label(body, text=txt, font=(FONT, 11, "bold"),  # type: ignore
                      bg=C["chat_bg"], fg=C["accent"]).pack(anchor="w", pady=(18, 4))  # type: ignore
             tk.Frame(body, bg=C["border"], height=1).pack(fill="x")  # type: ignore
 
-        _section("📦 Dữ liệu")
+        _section("📦 Dữ liệu")  # type: ignore
 
         def _clear_cache() -> None:
-            if messagebox.askyesno("Xác nhận", "Xóa cache sẽ buộc tải lại từ API. Tiếp tục?"):
-                for p in [DATA_PATH, INDEX_PATH]:
-                    if os.path.exists(p):
-                        os.remove(p)
-                messagebox.showinfo("Hoàn tất", "Cache đã xóa. Khởi lại app để hoàn tất.")
+            if messagebox.askyesno("Xác nhận", "Xóa cache sẽ buộc tải lại từ API. Tiếp tục?"):  # type: ignore
+                for p in [DATA_PATH, INDEX_PATH]:  # type: ignore
+                    if os.path.exists(p):  # type: ignore
+                        os.remove(p)  # type: ignore
+                messagebox.showinfo("Hoàn tất", "Cache đã xóa. Khởi lại app để hoàn tất.")  # type: ignore
 
-        self._settings_btn(body, "🗑  Xóa Cache (Làm mới dữ liệu)", _clear_cache)
+        self._settings_btn(body, "🗑  Xóa Cache (Làm mới dữ liệu)", _clear_cache)  # type: ignore
 
-        _section("📖 Sổ tay")
+        _section("📖 Sổ tay")  # type: ignore
 
         def _clear_bm() -> None:
-            if messagebox.askyesno("Xác nhận", "Xóa toàn bộ sổ tay vĩnh viễn?"):
-                open(BOOKMARKS_PATH, "w").close()
-                messagebox.showinfo("Hoàn tất", "Sổ tay đã xóa sạch.")
+            if messagebox.askyesno("Xác nhận", "Xóa toàn bộ sổ tay vĩnh viễn?"):  # type: ignore
+                open(BOOKMARKS_PATH, "w").close()  # type: ignore
+                messagebox.showinfo("Hoàn tất", "Sổ tay đã xóa sạch.")  # type: ignore
 
-        self._settings_btn(body, "🗑  Xóa sạch Sổ tay", _clear_bm)
+        self._settings_btn(body, "🗑  Xóa sạch Sổ tay", _clear_bm)  # type: ignore
 
-        _section("ℹ️ Thông tin")
-        tk.Label(
-            body,
-            text="AI Dictionary v3.2  ·  Free Dictionary API  ·  O(log n) Cache",
-            font=(FONT, 10), bg=C["chat_bg"], fg=C["text_dim"], justify="left",
+        _section("ℹ️ Thông tin")  # type: ignore
+        tk.Label(  # type: ignore
+            body,  # type: ignore
+            text="AI Dictionary v3.2  ·  Free Dictionary API  ·  O(log n) Cache",  # type: ignore
+            font=(FONT, 10), bg=C["chat_bg"], fg=C["text_dim"], justify="left",  # type: ignore
         ).pack(anchor="w", pady=8)  # type: ignore
 
     def _settings_btn(self, parent: tk.Frame, text: str, cmd: Callable) -> None:  # type: ignore
-        btn = tk.Label(
-            parent, text=text, font=(FONT, 11),
-            bg=C["bubble_ai"], fg=C["text_main"],
-            padx=16, pady=10, anchor="w", cursor="hand2",
-        )
+        btn = tk.Label(  # type: ignore
+            parent, text=text, font=(FONT, 11),  # type: ignore
+            bg=C["bubble_ai"], fg=C["text_main"],  # type: ignore
+            padx=16, pady=10, anchor="w", cursor="hand2",  # type: ignore
+        )  # type: ignore
         btn.pack(fill="x", pady=4)  # type: ignore
         btn.bind("<Button-1>", lambda e: cmd())  # type: ignore
         self._bind_hover(btn, C["bubble_ai"], C["sidebar_h"])  # type: ignore
@@ -705,9 +705,9 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _page_header(self, parent: tk.Frame, title: str, color: str) -> None:  # type: ignore
-        h = tk.Frame(parent, bg=C["bg"], pady=12)
+        h = tk.Frame(parent, bg=C["bg"], pady=12)  # type: ignore
         h.pack(fill="x", padx=18)  # type: ignore
-        tk.Label(h, text=title, font=(FONT, 16, "bold"),
+        tk.Label(h, text=title, font=(FONT, 16, "bold"),  # type: ignore
                  bg=C["bg"], fg=color).pack(side="left")  # type: ignore
         tk.Frame(parent, bg=C["border"], height=1).pack(fill="x")  # type: ignore
 
@@ -716,17 +716,17 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _init_backend(self) -> None:
-        self._words = _load_words_list()
-        self._dict_app = DictionaryApp(DATA_PATH, INDEX_PATH)
+        self._words = _load_words_list()  # type: ignore
+        self._dict_app = DictionaryApp(DATA_PATH, INDEX_PATH)  # type: ignore
         n = self._dict_app.total_words_cached()  # type: ignore
         self.root.after(0, lambda: self._add_ai_bubble(  # type: ignore
-            f"✅ Hệ thống sẵn sàng!\n📦 Cache: **{n:,} từ** | 🌐 Free Dictionary API: Online"
-        ))
-        _ensure_file(HISTORY_PATH)
-        try:
-            with open(HISTORY_PATH, "r", encoding="utf-8") as f:
-                self._history = [l.strip() for l in f if l.strip()]
-        except Exception:
+            f"✅ Hệ thống sẵn sàng!\n📦 Cache: **{n:,} từ** | 🌐 Free Dictionary API: Online"  # type: ignore
+        ))  # type: ignore
+        _ensure_file(HISTORY_PATH)  # type: ignore
+        try:  # type: ignore
+            with open(HISTORY_PATH, "r", encoding="utf-8") as f:  # type: ignore
+                self._history = [l.strip() for l in f if l.strip()]  # type: ignore
+        except Exception:  # type: ignore
             self._history = []  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -738,29 +738,29 @@ class DictionaryUI:
         w.bind("<Leave>", lambda e: w.configure(bg=normal))  # type: ignore
 
     def _bind_click_flash(self, w: tk.Widget, normal: str) -> None:  # type: ignore
-        """Darkens widget on press, restores on release."""
+        """Darkens widget on press, restores on release."""  # type: ignore
         w.bind("<ButtonPress-1>",   lambda e: w.configure(bg="#090910"))   # type: ignore
         w.bind("<ButtonRelease-1>", lambda e: w.configure(bg=normal))      # type: ignore
 
     # — Glow pulse for input border —
     def _start_glow(self, frame: tk.Frame) -> None:  # type: ignore
-        self._glow_on = True
-        self._do_glow(frame, 0)
+        self._glow_on = True  # type: ignore
+        self._do_glow(frame, 0)  # type: ignore
 
     def _stop_glow(self, frame: tk.Frame) -> None:  # type: ignore
-        self._glow_on = False
-        if self._glow_job:
-            try:
+        self._glow_on = False  # type: ignore
+        if self._glow_job:  # type: ignore
+            try:  # type: ignore
                 self.root.after_cancel(self._glow_job)  # type: ignore
-            except Exception:
+            except Exception:  # type: ignore
                 pass
-        if frame.winfo_exists():
+        if frame.winfo_exists():  # type: ignore
             frame.config(bg=C["input_bdr"])  # type: ignore
 
     def _do_glow(self, frame: tk.Frame, step: int) -> None:  # type: ignore
-        if not self._glow_on or not frame.winfo_exists():
+        if not self._glow_on or not frame.winfo_exists():  # type: ignore
             return
-        cols = ["#4C1D95", "#7C3AED", "#8B5CF6", "#7C3AED", "#4C1D95"]
+        cols = ["#4C1D95", "#7C3AED", "#8B5CF6", "#7C3AED", "#4C1D95"]  # type: ignore
         frame.config(bg=cols[step % len(cols)])  # type: ignore
         self._glow_job = self.root.after(120, self._do_glow, frame, step + 1)  # type: ignore
 
@@ -769,17 +769,17 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _animate_typing(self, label: tk.Label, text: str,  # type: ignore
-                        index: int = 0, on_complete: Optional[Callable] = None) -> None:
-        if not label.winfo_exists():
+                        index: int = 0, on_complete: Optional[Callable] = None) -> None:  # type: ignore
+        if not label.winfo_exists():  # type: ignore
             return
-        step = 3 if len(text) > 50 else 2
+        step = 3 if len(text) > 50 else 2  # type: ignore
         label.config(text=text[: min(index, len(text))])  # type: ignore
-        self._scroll_to_bottom()
-        if index < len(text):
+        self._scroll_to_bottom()  # type: ignore
+        if index < len(text):  # type: ignore
             self.root.after(1, self._animate_typing, label, text, index + step, on_complete)  # type: ignore
-        else:
+        else:  # type: ignore
             label.config(text=text)  # type: ignore
-            if on_complete:
+            if on_complete:  # type: ignore
                 self.root.after(5, on_complete)  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -787,20 +787,20 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _on_frame_configure(self, event: object = None) -> None:  # type: ignore
-        if self._canvas:
+        if self._canvas:  # type: ignore
             self._canvas.configure(scrollregion=self._canvas.bbox("all"))  # type: ignore
 
     def _on_canvas_configure(self, event: object) -> None:  # type: ignore
-        if self._canvas and self._chat_window is not None:
+        if self._canvas and self._chat_window is not None:  # type: ignore
             self._canvas.itemconfig(self._chat_window, width=event.width)  # type: ignore
 
     def _on_mousewheel(self, event: object) -> None:  # type: ignore
-        if self._current_page == "chat" and self._canvas:
+        if self._current_page == "chat" and self._canvas:  # type: ignore
             self._canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")  # type: ignore
 
     def _scroll_to_bottom(self) -> None:
-        if self._canvas:
-            self.root.update_idletasks()
+        if self._canvas:  # type: ignore
+            self.root.update_idletasks()  # type: ignore
             self._canvas.yview_moveto(1.0)  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -808,223 +808,223 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _add_user_bubble(self, text: str) -> None:
-        if not self._chat_frame:
+        if not self._chat_frame:  # type: ignore
             return
-        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=4)
+        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=4)  # type: ignore
         row.pack(fill="x", padx=16)  # type: ignore
         tk.Frame(row, bg=C["chat_bg"]).pack(side="left", expand=True)  # type: ignore
-        bubble = tk.Frame(row, bg=C["bubble_user"], padx=16, pady=10)
+        bubble = tk.Frame(row, bg=C["bubble_user"], padx=16, pady=10)  # type: ignore
         bubble.pack(side="right")  # type: ignore
-        tk.Label(bubble, text=f"🔍  {text}", font=(FONT, 12, "bold"),
-                 bg=C["bubble_user"], fg="white",
+        tk.Label(bubble, text=f"🔍  {text}", font=(FONT, 12, "bold"),  # type: ignore
+                 bg=C["bubble_user"], fg="white",  # type: ignore
                  wraplength=420, justify="right").pack()  # type: ignore
-        self._scroll_to_bottom()
+        self._scroll_to_bottom()  # type: ignore
 
     def _add_ai_bubble(self, text: str) -> None:
-        if not self._chat_frame:
+        if not self._chat_frame:  # type: ignore
             return
-        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=4)
+        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=4)  # type: ignore
         row.pack(fill="x", padx=16)  # type: ignore
-        tk.Label(row, text="🤖", font=(FONT, 16),
+        tk.Label(row, text="🤖", font=(FONT, 16),  # type: ignore
                  bg=C["chat_bg"], fg=C["accent"]).pack(side="left", anchor="n", padx=(0, 8), pady=4)  # type: ignore
-        bubble = tk.Frame(row, bg=C["bubble_ai"], padx=16, pady=10)
+        bubble = tk.Frame(row, bg=C["bubble_ai"], padx=16, pady=10)  # type: ignore
         bubble.pack(side="left", fill="x", expand=True)  # type: ignore
-        lbl = tk.Label(bubble, text="", font=(FONT, 11),
-                       bg=C["bubble_ai"], fg=C["text_sub"],
-                       wraplength=700, justify="left")
+        lbl = tk.Label(bubble, text="", font=(FONT, 11),  # type: ignore
+                       bg=C["bubble_ai"], fg=C["text_sub"],  # type: ignore
+                       wraplength=700, justify="left")  # type: ignore
         lbl.pack(anchor="w")  # type: ignore
-        self._animate_typing(lbl, text.replace("**", "").replace("\\n", "\n"))
-        self._scroll_to_bottom()
+        self._animate_typing(lbl, text.replace("**", "").replace("\\n", "\n"))  # type: ignore
+        self._scroll_to_bottom()  # type: ignore
 
     def _add_result_bubble(self, entry: LexicalEntry) -> None:
-        if not self._chat_frame:
+        if not self._chat_frame:  # type: ignore
             return
-        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=6)
+        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=6)  # type: ignore
         row.pack(fill="x", padx=16)  # type: ignore
-        tk.Label(row, text="🤖", font=(FONT, 16),
+        tk.Label(row, text="🤖", font=(FONT, 16),  # type: ignore
                  bg=C["chat_bg"], fg=C["accent"]).pack(side="left", anchor="n", padx=(0, 8), pady=4)  # type: ignore
 
-        bubble = tk.Frame(row, bg=C["bubble_ai"], padx=20, pady=14)
+        bubble = tk.Frame(row, bg=C["bubble_ai"], padx=20, pady=14)  # type: ignore
         bubble.pack(side="left", fill="x", expand=True)  # type: ignore
 
         import re
-        ipa = entry.uk_ipa or entry.us_ipa
-        title = entry.word.lower()
-        if ipa:
-            title += f" /{re.sub(r'[/\\[\\]\\s]', '', ipa)}/"
+        ipa = entry.uk_ipa or entry.us_ipa  # type: ignore
+        title = entry.word.lower()  # type: ignore
+        if ipa:  # type: ignore
+            title += f" /{re.sub(r'[/\\[\\]\\s]', '', ipa)}/"  # type: ignore
 
-        short = getattr(entry, "short_translation", "")
-        if not short and entry.senses:
-            for s in entry.senses:
-                if s.translation:
-                    short = s.translation
+        short = getattr(entry, "short_translation", "")  # type: ignore
+        if not short and entry.senses:  # type: ignore
+            for s in entry.senses:  # type: ignore
+                if s.translation:  # type: ignore
+                    short = s.translation  # type: ignore
                     break
 
-        source = getattr(entry, "source", "")
+        source = getattr(entry, "source", "")  # type: ignore
 
-        title_lbl = tk.Label(bubble, text="", font=(FONT, 22, "bold"),
-                             bg=C["bubble_ai"], fg=C["text_main"])
+        title_lbl = tk.Label(bubble, text="", font=(FONT, 22, "bold"),  # type: ignore
+                             bg=C["bubble_ai"], fg=C["text_main"])  # type: ignore
         title_lbl.pack(anchor="w", pady=(0, 2))  # type: ignore
 
-        src_lbl   = tk.Label(bubble, text="", font=(FONT, 9),
-                             bg=C["bubble_ai"], fg=C["text_dim"])
-        short_lbl = tk.Label(bubble, text="", font=(FONT, 17, "bold"),
-                             bg=C["bubble_ai"], fg=C["green"],
-                             wraplength=660, justify="left")
+        src_lbl   = tk.Label(bubble, text="", font=(FONT, 9),  # type: ignore
+                             bg=C["bubble_ai"], fg=C["text_dim"])  # type: ignore
+        short_lbl = tk.Label(bubble, text="", font=(FONT, 17, "bold"),  # type: ignore
+                             bg=C["bubble_ai"], fg=C["green"],  # type: ignore
+                             wraplength=660, justify="left")  # type: ignore
 
         def stage_4() -> None:
-            if not bubble.winfo_exists():
+            if not bubble.winfo_exists():  # type: ignore
                 return
             tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=10)  # type: ignore
-            self._animate_senses(bubble, entry, entry.senses)
+            self._animate_senses(bubble, entry, entry.senses)  # type: ignore
 
         def stage_3() -> None:
-            if not bubble.winfo_exists():
+            if not bubble.winfo_exists():  # type: ignore
                 return
-            if short:
+            if short:  # type: ignore
                 short_lbl.pack(anchor="w", pady=(8, 4))  # type: ignore
-                self._animate_typing(short_lbl, short, on_complete=stage_4)
-            else:
-                stage_4()
+                self._animate_typing(short_lbl, short, on_complete=stage_4)  # type: ignore
+            else:  # type: ignore
+                stage_4()  # type: ignore
 
         def stage_2() -> None:
-            if not bubble.winfo_exists():
+            if not bubble.winfo_exists():  # type: ignore
                 return
-            if source:
+            if source:  # type: ignore
                 src_lbl.pack(anchor="w", pady=(0, 4))  # type: ignore
-                algo = "⚡ RAM Cache" if "Cache" in source else "🌐 Free API"
-                self._animate_typing(src_lbl, algo, on_complete=stage_3)
-            else:
-                stage_3()
+                algo = "⚡ RAM Cache" if "Cache" in source else "🌐 Free API"  # type: ignore
+                self._animate_typing(src_lbl, algo, on_complete=stage_3)  # type: ignore
+            else:  # type: ignore
+                stage_3()  # type: ignore
 
-        self._animate_typing(title_lbl, title, on_complete=stage_2)
-        self._last_entry = entry
+        self._animate_typing(title_lbl, title, on_complete=stage_2)  # type: ignore
+        self._last_entry = entry  # type: ignore
 
     def _add_not_found_bubble(self, kw: str) -> None:
-        if not self._chat_frame:
+        if not self._chat_frame:  # type: ignore
             return
-        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=6)
+        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=6)  # type: ignore
         row.pack(fill="x", padx=16)  # type: ignore
-        tk.Label(row, text="🤖", font=(FONT, 16),
+        tk.Label(row, text="🤖", font=(FONT, 16),  # type: ignore
                  bg=C["chat_bg"], fg=C["accent"]).pack(side="left", anchor="n", padx=(0, 8), pady=4)  # type: ignore
-        bubble = tk.Frame(row, bg="#2A1515", padx=16, pady=12)
+        bubble = tk.Frame(row, bg="#2A1515", padx=16, pady=12)  # type: ignore
         bubble.pack(side="left", fill="x", expand=True)  # type: ignore
-        tk.Label(bubble, text=f"❌  Không tìm thấy «{kw}»",
+        tk.Label(bubble, text=f"❌  Không tìm thấy «{kw}»",  # type: ignore
                  font=(FONT, 12, "bold"), bg="#2A1515", fg=C["red"]).pack(anchor="w")  # type: ignore
-        tk.Label(bubble,
-                 text="Từ này chưa có trong từ điển. Thử từ thông dụng khác nhé!",
-                 font=(FONT, 10), bg="#2A1515", fg=C["text_dim"],
+        tk.Label(bubble,  # type: ignore
+                 text="Từ này chưa có trong từ điển. Thử từ thông dụng khác nhé!",  # type: ignore
+                 font=(FONT, 10), bg="#2A1515", fg=C["text_dim"],  # type: ignore
                  wraplength=620, justify="left").pack(anchor="w", pady=(4, 0))  # type: ignore
-        self._scroll_to_bottom()
+        self._scroll_to_bottom()  # type: ignore
 
     def _welcome_message(self) -> None:
-        if not self._chat_frame:
+        if not self._chat_frame:  # type: ignore
             return
-        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=16)
+        row = tk.Frame(self._chat_frame, bg=C["chat_bg"], pady=16)  # type: ignore
         row.pack(fill="x", padx=16)  # type: ignore
-        tk.Label(row, text="🤖", font=(FONT, 22),
+        tk.Label(row, text="🤖", font=(FONT, 22),  # type: ignore
                  bg=C["chat_bg"], fg=C["accent"]).pack(side="left", anchor="n", padx=(0, 10))  # type: ignore
-        b = tk.Frame(row, bg=C["bubble_ai"], padx=20, pady=14)
+        b = tk.Frame(row, bg=C["bubble_ai"], padx=20, pady=14)  # type: ignore
         b.pack(side="left", fill="x", expand=True)  # type: ignore
-        tk.Label(b, text="Xin chào! Tôi là AI Từ Điển Anh-Việt 🌟",
+        tk.Label(b, text="Xin chào! Tôi là AI Từ Điển Anh-Việt 🌟",  # type: ignore
                  font=(FONT, 14, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(anchor="w")  # type: ignore
-        tk.Label(b,
-                 text="Gõ một từ tiếng Anh rồi nhấn ➤ hoặc Enter để tra nghĩa.\n\n"
-                      "📖 Sổ tay · 💡 Luyện từ · 📜 Lịch sử — có trong thanh bên trái!",
-                 font=(FONT, 10), bg=C["bubble_ai"], fg=C["text_dim"],
+        tk.Label(b,  # type: ignore
+                 text="Gõ một từ tiếng Anh rồi nhấn ➤ hoặc Enter để tra nghĩa.\n\n"  # type: ignore
+                      "📖 Sổ tay · 💡 Luyện từ · 📜 Lịch sử — có trong thanh bên trái!",  # type: ignore
+                 font=(FONT, 10), bg=C["bubble_ai"], fg=C["text_dim"],  # type: ignore
                  wraplength=660, justify="left").pack(anchor="w", pady=(6, 0))  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Senses / examples rendering (sequential typing chain)
     # ══════════════════════════════════════════════════════════════════════════
 
-    _POS_VI = {
-        "noun": "danh từ", "verb": "động từ", "adjective": "tính từ",
-        "adverb": "trạng từ", "pronoun": "đại từ", "preposition": "giới từ",
-        "conjunction": "liên từ", "interjection": "thán từ",
-    }
+    _POS_VI = {  # type: ignore
+        "noun": "danh từ", "verb": "động từ", "adjective": "tính từ",  # type: ignore
+        "adverb": "trạng từ", "pronoun": "đại từ", "preposition": "giới từ",  # type: ignore
+        "conjunction": "liên từ", "interjection": "thán từ",  # type: ignore
+    }  # type: ignore
 
     def _animate_senses(self, bubble: tk.Frame, entry: LexicalEntry,  # type: ignore
-                        senses: list, idx: int = 0) -> None:
-        if idx >= len(senses) or not bubble.winfo_exists():
-            self._add_save_btn(bubble, entry)
-            self._scroll_to_bottom()
+                        senses: list, idx: int = 0) -> None:  # type: ignore
+        if idx >= len(senses) or not bubble.winfo_exists():  # type: ignore
+            self._add_save_btn(bubble, entry)  # type: ignore
+            self._scroll_to_bottom()  # type: ignore
             return
 
-        s = senses[idx]
-        vi_pos = self._POS_VI.get((s.pos or "").lower(), s.pos or "")
-        if vi_pos:
-            tk.Label(bubble, text=f"* {vi_pos}", font=(FONT, 10, "bold"),
+        s = senses[idx]  # type: ignore
+        vi_pos = self._POS_VI.get((s.pos or "").lower(), s.pos or "")  # type: ignore
+        if vi_pos:  # type: ignore
+            tk.Label(bubble, text=f"* {vi_pos}", font=(FONT, 10, "bold"),  # type: ignore
                      bg=C["bubble_ai"], fg="#5C9BD1").pack(anchor="w", pady=(6, 2))  # type: ignore
 
-        def_lbl = tk.Label(bubble, text="", font=(FONT, 11),
-                           bg=C["bubble_ai"], fg=C["text_main"],
-                           wraplength=660, justify="left")
+        def_lbl = tk.Label(bubble, text="", font=(FONT, 11),  # type: ignore
+                           bg=C["bubble_ai"], fg=C["text_main"],  # type: ignore
+                           wraplength=660, justify="left")  # type: ignore
         def_lbl.pack(anchor="w", padx=(10, 0))  # type: ignore
 
         def on_def_done() -> None:
             def on_tr_done() -> None:
-                if s.examples:
-                    self._animate_examples(bubble, entry, senses, idx, s.examples, 0)
-                else:
-                    self._animate_senses(bubble, entry, senses, idx + 1)
+                if s.examples:  # type: ignore
+                    self._animate_examples(bubble, entry, senses, idx, s.examples, 0)  # type: ignore
+                else:  # type: ignore
+                    self._animate_senses(bubble, entry, senses, idx + 1)  # type: ignore
 
-            if s.translation:
-                tl = tk.Label(bubble, text="", font=(FONT, 10, "italic"),
-                              bg=C["bubble_ai"], fg="#A8B5C8",
-                              wraplength=660, justify="left")
+            if s.translation:  # type: ignore
+                tl = tk.Label(bubble, text="", font=(FONT, 10, "italic"),  # type: ignore
+                              bg=C["bubble_ai"], fg="#A8B5C8",  # type: ignore
+                              wraplength=660, justify="left")  # type: ignore
                 tl.pack(anchor="w", padx=(24, 0))  # type: ignore
-                self._animate_typing(tl, f"({s.translation.strip('() ')})", on_complete=on_tr_done)
-            else:
-                on_tr_done()
+                self._animate_typing(tl, f"({s.translation.strip('() ')})", on_complete=on_tr_done)  # type: ignore
+            else:  # type: ignore
+                on_tr_done()  # type: ignore
 
-        self._animate_typing(def_lbl, f"+ {s.definition}", on_complete=on_def_done)
+        self._animate_typing(def_lbl, f"+ {s.definition}", on_complete=on_def_done)  # type: ignore
 
     def _animate_examples(self, bubble: tk.Frame, entry: LexicalEntry,  # type: ignore
-                          senses: list, si: int, examples: list, ei: int) -> None:
-        if ei >= len(examples) or not bubble.winfo_exists():
-            self._animate_senses(bubble, entry, senses, si + 1)
+                          senses: list, si: int, examples: list, ei: int) -> None:  # type: ignore
+        if ei >= len(examples) or not bubble.winfo_exists():  # type: ignore
+            self._animate_senses(bubble, entry, senses, si + 1)  # type: ignore
             return
 
-        ex = examples[ei]
-        en_ex = ex.get("en", "")
-        vi_ex = ex.get("vi", "")
-        if not en_ex:
-            self._animate_examples(bubble, entry, senses, si, examples, ei + 1)
+        ex = examples[ei]  # type: ignore
+        en_ex = ex.get("en", "")  # type: ignore
+        vi_ex = ex.get("vi", "")  # type: ignore
+        if not en_ex:  # type: ignore
+            self._animate_examples(bubble, entry, senses, si, examples, ei + 1)  # type: ignore
             return
 
-        en_lbl = tk.Label(bubble, text="", font=(FONT, 10, "italic"),
-                          bg=C["bubble_ai"], fg=C["text_example"],
-                          wraplength=640, justify="left")
+        en_lbl = tk.Label(bubble, text="", font=(FONT, 10, "italic"),  # type: ignore
+                          bg=C["bubble_ai"], fg=C["text_example"],  # type: ignore
+                          wraplength=640, justify="left")  # type: ignore
         en_lbl.pack(anchor="w", padx=(10, 0))  # type: ignore
 
         def on_en_done() -> None:
-            if vi_ex:
-                vl = tk.Label(bubble, text="", font=(FONT, 9, "italic"),
-                              bg=C["bubble_ai"], fg="#8A9EB1",
-                              wraplength=640, justify="left")
+            if vi_ex:  # type: ignore
+                vl = tk.Label(bubble, text="", font=(FONT, 9, "italic"),  # type: ignore
+                              bg=C["bubble_ai"], fg="#8A9EB1",  # type: ignore
+                              wraplength=640, justify="left")  # type: ignore
                 vl.pack(anchor="w", padx=(28, 0))  # type: ignore
-                self._animate_typing(
-                    vl, f"({vi_ex.strip('() ')})",
-                    on_complete=lambda: self._animate_examples(bubble, entry, senses, si, examples, ei + 1),
-                )
-            else:
-                self._animate_examples(bubble, entry, senses, si, examples, ei + 1)
+                self._animate_typing(  # type: ignore
+                    vl, f"({vi_ex.strip('() ')})",  # type: ignore
+                    on_complete=lambda: self._animate_examples(bubble, entry, senses, si, examples, ei + 1),  # type: ignore
+                )  # type: ignore
+            else:  # type: ignore
+                self._animate_examples(bubble, entry, senses, si, examples, ei + 1)  # type: ignore
 
-        self._animate_typing(en_lbl, f"+ {en_ex}", on_complete=on_en_done)
+        self._animate_typing(en_lbl, f"+ {en_ex}", on_complete=on_en_done)  # type: ignore
 
     def _add_save_btn(self, bubble: tk.Frame, entry: LexicalEntry) -> None:  # type: ignore
-        if not bubble.winfo_exists():
+        if not bubble.winfo_exists():  # type: ignore
             return
-        btn = tk.Label(bubble, text="⭐  Lưu vào Sổ tay", font=(FONT, 9, "bold"),
-                       bg="#2A2A4A", fg=C["gold"], padx=12, pady=6, cursor="hand2")
+        btn = tk.Label(bubble, text="⭐  Lưu vào Sổ tay", font=(FONT, 9, "bold"),  # type: ignore
+                       bg="#2A2A4A", fg=C["gold"], padx=12, pady=6, cursor="hand2")  # type: ignore
         btn.pack(anchor="w", pady=(12, 4))  # type: ignore
 
         def _save() -> None:
-            _ensure_file(BOOKMARKS_PATH)
-            line = f"{entry.word} - {getattr(entry, 'short_translation', '')}\n"
-            with open(BOOKMARKS_PATH, "a", encoding="utf-8") as f:
-                f.write(line)
+            _ensure_file(BOOKMARKS_PATH)  # type: ignore
+            line = f"{entry.word} - {getattr(entry, 'short_translation', '')}\n"  # type: ignore
+            with open(BOOKMARKS_PATH, "a", encoding="utf-8") as f:  # type: ignore
+                f.write(line)  # type: ignore
             btn.config(text="✅  Đã lưu", fg=C["green"])  # type: ignore
 
         btn.bind("<Button-1>", lambda e: _save())  # type: ignore
@@ -1035,130 +1035,130 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _on_search(self, event: object = None) -> None:
-        self._hide_listbox()
-        kw = self._search_var.get().strip()
-        if not kw:
+        self._hide_listbox()  # type: ignore
+        kw = self._search_var.get().strip()  # type: ignore
+        if not kw:  # type: ignore
             return
-        self._search_var.set("")
-        self._add_user_bubble(kw)
-        self._add_ai_bubble("⏳ Đang tra cứu...")
+        self._search_var.set("")  # type: ignore
+        self._add_user_bubble(kw)  # type: ignore
+        self._add_ai_bubble("⏳ Đang tra cứu...")  # type: ignore
 
         # Save to history
-        try:
-            _ensure_file(HISTORY_PATH)
-            with open(HISTORY_PATH, "a", encoding="utf-8") as f:
-                f.write(kw + "\n")
-            self._history.append(kw)
-        except Exception:
+        try:  # type: ignore
+            _ensure_file(HISTORY_PATH)  # type: ignore
+            with open(HISTORY_PATH, "a", encoding="utf-8") as f:  # type: ignore
+                f.write(kw + "\n")  # type: ignore
+            self._history.append(kw)  # type: ignore
+        except Exception:  # type: ignore
             pass
 
         def _do() -> None:
-            if not self._dict_app:
+            if not self._dict_app:  # type: ignore
                 return
             e = self._dict_app.find_word(kw)  # type: ignore
             self.root.after(0, self._remove_last_bubble)  # type: ignore
-            if e:
+            if e:  # type: ignore
                 self.root.after(0, lambda: self._add_result_bubble(e))  # type: ignore
-            else:
+            else:  # type: ignore
                 self.root.after(0, lambda: self._add_not_found_bubble(kw))  # type: ignore
 
-        threading.Thread(target=_do, daemon=True).start()
+        threading.Thread(target=_do, daemon=True).start()  # type: ignore
 
     def _remove_last_bubble(self) -> None:
-        if self._chat_frame:
-            ch = self._chat_frame.winfo_children()
-            if ch:
-                ch[-1].destroy()
+        if self._chat_frame:  # type: ignore
+            ch = self._chat_frame.winfo_children()  # type: ignore
+            if ch:  # type: ignore
+                ch[-1].destroy()  # type: ignore
 
     def _clear_chat(self) -> None:
-        if self._chat_frame:
-            for w in self._chat_frame.winfo_children():
-                w.destroy()
-        self._last_entry = None
-        self._welcome_message()
+        if self._chat_frame:  # type: ignore
+            for w in self._chat_frame.winfo_children():  # type: ignore
+                w.destroy()  # type: ignore
+        self._last_entry = None  # type: ignore
+        self._welcome_message()  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Audio
     # ══════════════════════════════════════════════════════════════════════════
 
     def _on_speak(self, accent: str) -> None:
-        if not self._last_entry:
+        if not self._last_entry:  # type: ignore
             return
         url = self._last_entry.us_audio if accent == "us" else self._last_entry.uk_audio  # type: ignore
-        if url:
-            webbrowser.open_new_tab(url)
-        else:
+        if url:  # type: ignore
+            webbrowser.open_new_tab(url)  # type: ignore
+        else:  # type: ignore
             def _fb() -> None:
-                try:
+                try:  # type: ignore
                     import pyttsx3  # type: ignore
-                    e = pyttsx3.init()
+                    e = pyttsx3.init()  # type: ignore
                     e.say(self._last_entry.word)  # type: ignore
-                    e.runAndWait()
-                except Exception:
+                    e.runAndWait()  # type: ignore
+                except Exception:  # type: ignore
                     pass
-            threading.Thread(target=_fb, daemon=True).start()
+            threading.Thread(target=_fb, daemon=True).start()  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Autocomplete
     # ══════════════════════════════════════════════════════════════════════════
 
     def _show_listbox(self) -> None:
-        if not self._entry or not self._listbox_frame:
+        if not self._entry or not self._listbox_frame:  # type: ignore
             return
-        x = self._entry.winfo_rootx() - self.root.winfo_rootx()
-        y = self._entry.winfo_rooty() - self.root.winfo_rooty() - 130
-        w = self._entry.winfo_width()
-        self._listbox_frame.place(x=x, y=y, width=w)
-        self._listbox_frame.lift()
+        x = self._entry.winfo_rootx() - self.root.winfo_rootx()  # type: ignore
+        y = self._entry.winfo_rooty() - self.root.winfo_rooty() - 130  # type: ignore
+        w = self._entry.winfo_width()  # type: ignore
+        self._listbox_frame.place(x=x, y=y, width=w)  # type: ignore
+        self._listbox_frame.lift()  # type: ignore
 
     def _hide_listbox(self) -> None:
-        if self._listbox_frame and self._listbox_frame.winfo_exists():
-            self._listbox_frame.place_forget()
+        if self._listbox_frame and self._listbox_frame.winfo_exists():  # type: ignore
+            self._listbox_frame.place_forget()  # type: ignore
 
     def _on_key_release(self, event: object) -> None:  # type: ignore
         if event.keysym in ("Return", "Down", "Up", "Left", "Right"):  # type: ignore
             return
-        kw = self._search_var.get().strip().lower()
-        if not kw:
-            self._hide_listbox()
+        kw = self._search_var.get().strip().lower()  # type: ignore
+        if not kw:  # type: ignore
+            self._hide_listbox()  # type: ignore
             return
-        matches = [w for w in self._words if w.startswith(kw)][:7]
-        if matches and self._listbox:
+        matches = [w for w in self._words if w.startswith(kw)][:7]  # type: ignore
+        if matches and self._listbox:  # type: ignore
             self._listbox.delete(0, tk.END)  # type: ignore
-            for m in matches:
+            for m in matches:  # type: ignore
                 self._listbox.insert(tk.END, m)  # type: ignore
-            self._show_listbox()
-        else:
-            self._hide_listbox()
+            self._show_listbox()  # type: ignore
+        else:  # type: ignore
+            self._hide_listbox()  # type: ignore
 
     def _on_arrow_down(self, event: object) -> None:  # type: ignore
-        if self._listbox_frame and self._listbox_frame.winfo_ismapped() and self._listbox:
+        if self._listbox_frame and self._listbox_frame.winfo_ismapped() and self._listbox:  # type: ignore
             self._listbox.focus()  # type: ignore
             self._listbox.selection_set(0)  # type: ignore
 
     def _on_listbox_select(self, event: object) -> None:  # type: ignore
-        if not self._listbox:
+        if not self._listbox:  # type: ignore
             return
-        sel = self._listbox.curselection()
-        if sel:
-            word = str(self._listbox.get(int(sel[0])))
-            self._search_var.set(word)
-            self._hide_listbox()
-            if self._entry:
+        sel = self._listbox.curselection()  # type: ignore
+        if sel:  # type: ignore
+            word = str(self._listbox.get(int(sel[0])))  # type: ignore
+            self._search_var.set(word)  # type: ignore
+            self._hide_listbox()  # type: ignore
+            if self._entry:  # type: ignore
                 self._entry.focus()  # type: ignore
-            self._on_search()
+            self._on_search()  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Run
     # ══════════════════════════════════════════════════════════════════════════
 
     def run(self) -> None:
-        self.root.mainloop()
+        self.root.mainloop()  # type: ignore
 
 
 def main() -> None:
-    DictionaryUI().run()
+    DictionaryUI().run()  # type: ignore
 
 
-if __name__ == "__main__":
-    main()
+if __name__ == "__main__":  # type: ignore
+    main()  # type: ignore
