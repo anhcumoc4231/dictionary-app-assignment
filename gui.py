@@ -808,11 +808,14 @@ class DictionaryUI:
                 tr_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 10, "italic"), 
                                   bg=C["bubble_ai"], fg="#A8B5C8", wraplength=640, justify="left") # type: ignore
                 tr_lbl.pack(anchor="w", padx=(25, 0)) # type: ignore
-                self._animate_typing(tr_lbl, f"({sense.translation})", on_complete=on_tr_done)
+                # Strip and ensure single parenthesis
+                clean_tr = sense.translation.strip("() ")
+                self._animate_typing(tr_lbl, f"({clean_tr})", on_complete=on_tr_done)
             else:
                 on_tr_done()
 
-        self._animate_typing(def_lbl, f"➤ {sense.definition}", on_complete=on_def_done)
+        self._animate_typing(def_lbl, f"+ {sense.definition}", on_complete=on_def_done)
+
 
     def _animate_examples_sequentially(self, parent_bubble: tk.Frame, entry: LexicalEntry, senses: list, s_idx: int, examples: list, e_idx: int) -> None: # type: ignore
         if e_idx >= len(examples) or not parent_bubble.winfo_exists():
@@ -822,15 +825,27 @@ class DictionaryUI:
         
         ex = examples[e_idx]
         en_ex = ex.get("en", "")
+        vi_ex = ex.get("vi", "")
         if not en_ex:
             self._animate_examples_sequentially(parent_bubble, entry, senses, s_idx, examples, e_idx + 1)
             return
 
-        ex_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 10, "italic"), 
+        en_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 10, "italic"), 
                           bg=C["bubble_ai"], fg=C["text_example"], wraplength=620, justify="left") # type: ignore
-        ex_lbl.pack(anchor="w", padx=(10, 0)) # type: ignore
+        en_lbl.pack(anchor="w", padx=(10, 0)) # type: ignore
         
-        self._animate_typing(ex_lbl, f"= {en_ex}", on_complete=lambda: self._animate_examples_sequentially(parent_bubble, entry, senses, s_idx, examples, e_idx + 1))
+        def on_en_done():
+            if vi_ex:
+                vi_lbl = tk.Label(parent_bubble, text="", font=(FONT_FAMILY, 9, "italic"), 
+                                  bg=C["bubble_ai"], fg="#8A9EB1", wraplength=620, justify="left") # type: ignore
+                vi_lbl.pack(anchor="w", padx=(30, 0)) # type: ignore
+                clean_vi = vi_ex.strip("() ")
+                self._animate_typing(vi_lbl, f"({clean_vi})", on_complete=lambda: self._animate_examples_sequentially(parent_bubble, entry, senses, s_idx, examples, e_idx + 1))
+            else:
+                self._animate_examples_sequentially(parent_bubble, entry, senses, s_idx, examples, e_idx + 1)
+
+        self._animate_typing(en_lbl, f"+ {en_ex}", on_complete=on_en_done)
+
 
         
     def _add_save_button_after_animation(self, bubble: tk.Frame, entry: LexicalEntry) -> None: # type: ignore
