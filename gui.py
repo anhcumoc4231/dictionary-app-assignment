@@ -93,6 +93,7 @@ class DictionaryUI:
         self._build_header()
         self._build_chat_area()
         self._build_input_bar()
+        self._build_menu()
         self._welcome_message()
 
         # Init backend in background
@@ -122,6 +123,57 @@ class DictionaryUI:
         entry = self._dict_app.find_word(word)  # type: ignore
         if entry:
             self.root.after(0, lambda: self._add_result_bubble(entry))  # type: ignore
+
+    # ------------------------------------------------------------------
+    # Menu Bar
+    # ------------------------------------------------------------------
+
+    def _build_menu(self) -> None:
+        menubar = tk.Menu(self.root)  # type: ignore
+        
+        # Menu: Hệ thống
+        file_menu = tk.Menu(menubar, tearoff=0)  # type: ignore
+        file_menu.add_command(label="🗑 Xóa lịch sử chat", command=self._clear_chat)  # type: ignore
+        file_menu.add_separator()  # type: ignore
+        file_menu.add_command(label="❌ Thoát", command=self.root.quit)  # type: ignore
+        menubar.add_cascade(label="Hệ thống", menu=file_menu)  # type: ignore
+
+        # Menu: Công cụ
+        tools_menu = tk.Menu(menubar, tearoff=0)  # type: ignore
+        tools_menu.add_command(label="🌟 Từ vựng mỗi ngày", command=self._show_word_of_the_day)  # type: ignore
+        tools_menu.add_separator()  # type: ignore
+        tools_menu.add_command(label="📖 Xem Sổ tay (Bookmarks)", command=self._menu_show_saved)  # type: ignore
+        tools_menu.add_command(label="🗑 Xóa sạch Sổ tay", command=self._menu_clear_saved)  # type: ignore
+        menubar.add_cascade(label="Công cụ", menu=tools_menu)  # type: ignore
+
+        # Menu: Trợ giúp
+        help_menu = tk.Menu(menubar, tearoff=0)  # type: ignore
+        help_menu.add_command(label="ℹ️ Thông tin App", command=self._menu_about)  # type: ignore
+        menubar.add_cascade(label="Trợ giúp", menu=help_menu)  # type: ignore
+
+        self.root.config(menu=menubar)  # type: ignore
+
+    def _menu_show_saved(self) -> None:
+        _ensure_bookmarks()
+        with open(BOOKMARKS_PATH, "r", encoding="utf-8") as f:
+            lines = [line.strip() for line in f if line.strip()]
+        if not lines:
+            self._add_ai_bubble("Sổ tay của bạn hiện đang trống! Hãy bấm nút ⭐ dưới mỗi từ để lưu lại nhé.")
+        else:
+            msg = "📖 **Sổ tay từ vựng của bạn:**\n\n"
+            for line in lines:
+                msg += f"- {line}\n"
+            self._add_ai_bubble(msg)
+
+    def _menu_clear_saved(self) -> None:
+        if messagebox.askyesno("Xác nhận", "Bạn có chắc chắn muốn xóa toàn bộ sổ tay vĩnh viễn?"): # type: ignore
+            _ensure_bookmarks()
+            with open(BOOKMARKS_PATH, "w", encoding="utf-8") as f:
+                pass
+            self._add_ai_bubble("🗑 Đã xóa sạch sổ tay!")
+
+    def _menu_about(self) -> None:
+        messagebox.showinfo("Thông tin", "🤖 AI Dictionary — Từ Điển Anh-Việt\nVersion 2.0 (Chatbot Style)") # type: ignore
 
     # ------------------------------------------------------------------
     # Widget builders
@@ -472,7 +524,8 @@ class DictionaryUI:
                  font=(FONT_FAMILY, 14, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(anchor="w")  # type: ignore
         tk.Label(bubble, # type: ignore
                  text="Gõ một từ tiếng Anh vào ô bên dưới và nhấn \"Tra ➤\" để tra cứu nghĩa.\n"
-                      "Tôi sẽ tra cứu từ Local Cache O(log n) trước — nếu chưa có sẽ gọi Free Dictionary API và dịch nghĩa Tiếng Việt ngay lập tức!",
+                      "Tôi sẽ tra cứu từ Local Cache O(log n) trước — nếu chưa có sẽ gọi Free Dictionary API và dịch nghĩa Tiếng Việt ngay lập tức!\n\n"
+                      "**Tính năng mới**: Sổ tay từ vựng và Word of the Day hiện đã có trong menu **Công cụ** bên trên!",
                  font=(FONT_FAMILY, 10), bg=C["bubble_ai"], fg=C["text_dim"],
                  wraplength=640, justify="left").pack(anchor="w", pady=(6, 0))  # type: ignore
 
