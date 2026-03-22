@@ -163,7 +163,7 @@ class DictionaryUI:
         # Canvas
         self._canvas = tk.Canvas( # type: ignore
             container, bg=C["chat_bg"], bd=0, highlightthickness=0,
-            yscrollcommand=scrollbar.set
+            yscrollcommand=scrollbar.set  # type: ignore
         )
         self._canvas.pack(side="left", fill="both", expand=True)  # type: ignore
         scrollbar.config(command=self._canvas.yview) # type: ignore
@@ -478,7 +478,7 @@ class DictionaryUI:
         if not self._last_entry:
             return
         entry = self._last_entry
-        url = entry.us_audio if accent == "us" else entry.uk_audio
+        url = entry.us_audio if accent == "us" else entry.uk_audio  # type: ignore[union-attr]
         if url:
             webbrowser.open_new_tab(url)
         else:
@@ -486,7 +486,7 @@ class DictionaryUI:
                 try:
                     import pyttsx3  # type: ignore
                     e = pyttsx3.init()
-                    e.say(entry.word)
+                    e.say(entry.word)  # type: ignore[union-attr]
                     e.runAndWait()
                 except Exception:
                     pass
@@ -507,7 +507,7 @@ class DictionaryUI:
         self._listbox_frame.place_forget()  # type: ignore
 
     def _on_key_release(self, event) -> None: # type: ignore
-        if event.keysym in ("Return", "Down", "Up", "Left", "Right"):
+        if event.keysym in ("Return", "Down", "Up", "Left", "Right"):  # type: ignore
             return
         keyword = self._search_var.get().strip().lower() # type: ignore
         if not keyword:
@@ -529,7 +529,7 @@ class DictionaryUI:
 
     def _on_listbox_select(self, event) -> None: # type: ignore
         sel = self._listbox.curselection() # type: ignore
-        if sel:
+        if sel:  # type: ignore
             for idx in sel: # type: ignore
                 word = str(self._listbox.get(int(idx))) # type: ignore
                 self._search_var.set(word) # type: ignore
