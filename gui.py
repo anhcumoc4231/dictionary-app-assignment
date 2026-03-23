@@ -516,7 +516,12 @@ class DictionaryUI:
                      bg=C["chat_bg"], fg=C["text_dim"], font=(FONT, 13)).pack(pady=60)  # type: ignore
             return
 
-        words = random.sample(self._words, min(5, len(self._words)))  # type: ignore
+        # Filter: only common lowercase words (exclude proper nouns and very short words)
+        import re as _re  # type: ignore
+        common = [w for w in self._words if w.islower() and len(w) >= 4 and _re.match(r'^[a-z]+$', w)]  # type: ignore
+        if not common:  # type: ignore
+            common = self._words  # type: ignore
+        words = random.sample(common, min(5, len(common)))  # type: ignore
         CARD_BG  = ["#3730A3", "#9D174D", "#065F46", "#92400E", "#1E40AF"]  # type: ignore  # muted darker cards
         CARD_HOV = ["#4338CA", "#BE185D", "#047857", "#B45309", "#1D4ED8"]  # type: ignore
 
@@ -782,9 +787,9 @@ class DictionaryUI:
         w.bind("<Leave>", lambda e: w.configure(bg=normal))  # type: ignore
 
     def _bind_click_flash(self, w: tk.Widget, normal: str) -> None:  # type: ignore
-        """Darkens widget on press, restores on release."""  # type: ignore
-        w.bind("<ButtonPress-1>",   lambda e: w.configure(bg="#090910"))   # type: ignore
-        w.bind("<ButtonRelease-1>", lambda e: w.configure(bg=normal))      # type: ignore
+        """Darkens widget on press, restores on release — does NOT override existing handlers."""  # type: ignore
+        w.bind("<ButtonPress-1>",   lambda e: w.configure(bg="#0A0A16"), "+")   # type: ignore
+        w.bind("<ButtonRelease-1>", lambda e: w.configure(bg=normal), "+")      # type: ignore
 
     # — Glow pulse for input border —
     def _start_glow(self, frame: tk.Frame) -> None:  # type: ignore
