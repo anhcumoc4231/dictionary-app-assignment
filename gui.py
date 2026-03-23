@@ -946,10 +946,12 @@ class DictionaryUI:
             # ✨ AI Refined Version (Back-translation)
             if hasattr(entry, "ai_refined") and entry.ai_refined:  # type: ignore
                 tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=(10, 5))  # type: ignore
-                tk.Label(bubble, text="✨ AI Suggestion (Better English):", font=(FONT, 12, "bold"),  # type: ignore
+                tk.Label(bubble, text="✨ AI Suggestion (Câu chuẩn):", font=(FONT, 12, "bold"),  # type: ignore
                          bg=C["bubble_ai"], fg=C["green"]).pack(anchor="w")  # type: ignore
-                tk.Label(bubble, text=f'"{entry.ai_refined}"', font=(FONT, 13, "italic"),  # type: ignore
-                         bg=C["bubble_ai"], fg=C["text_main"], wraplength=660, justify="left").pack(anchor="w", pady=(5, 10))  # type: ignore
+                
+                # Hiển thị câu gợi ý rực rỡ hơn
+                tk.Label(bubble, text=f'"{entry.ai_refined}"', font=(FONT, 14, "bold", "italic"),  # type: ignore
+                         bg=C["bubble_ai"], fg="#FCD34D", wraplength=660, justify="left").pack(anchor="w", pady=(5, 10))  # type: ignore
 
             # 💡 Grammar Corrections with Red Underline
             if hasattr(entry, "grammar_fixes") and entry.grammar_fixes:  # type: ignore

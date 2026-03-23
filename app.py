@@ -68,12 +68,14 @@ class DictionaryApp:
                 grammar_fixes = self._check_grammar(keyword)
                 
                 # AI Refinement (Back-translation trick for high accuracy)
-                # Dịch từ VI ngược lại EN để tìm câu chuẩn nhất
                 ai_refined = ""
                 try:
+                    # Lấy bản dịch chuẩn nhất từ Google
                     ai_refined = GoogleTranslator(source='vi', target='en').translate(translated)
-                    if ai_refined.lower().strip("?.!") == keyword.lower().strip("?.!"):
-                        ai_refined = "" # Giống hệt thì thôi
+                    # Nếu bản dịch khác bản gốc (kể cả khác chữ cái đầu) thì giữ lại
+                    if ai_refined.strip("?.! ").lower() == keyword.strip("?.! ").lower():
+                        if ai_refined.strip("?.! ") == keyword.strip("?.! "):
+                            ai_refined = "" # Giống hệt cả hoa thường thì thôi
                 except:
                     pass
 
