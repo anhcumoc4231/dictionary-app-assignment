@@ -516,12 +516,12 @@ class DictionaryUI:
                      bg=C["chat_bg"], fg=C["text_dim"], font=(FONT, 13)).pack(pady=60)  # type: ignore
             return
 
-        # Filter: only common lowercase words (exclude proper nouns and very short words)
-        import re as _re  # type: ignore
-        common = [w for w in self._words if w.islower() and len(w) >= 4 and _re.match(r'^[a-z]+$', w)]  # type: ignore
-        if not common:  # type: ignore
-            common = self._words  # type: ignore
-        words = random.sample(common, min(5, len(common)))  # type: ignore
+        # Filter: strictly only words that are already in our offline cache dictionary 
+        # (This guarantees 100% no "Không tìm thấy" and ensures fast loading)
+        valid_words = [w for w in self._words if w in self._dict_app._cache]  # type: ignore
+        if not valid_words:  # type: ignore
+            valid_words = self._words  # type: ignore
+        words = random.sample(valid_words, min(5, len(valid_words)))  # type: ignore
         CARD_BG  = ["#3730A3", "#9D174D", "#065F46", "#92400E", "#1E40AF"]  # type: ignore  # muted darker cards
         CARD_HOV = ["#4338CA", "#BE185D", "#047857", "#B45309", "#1D4ED8"]  # type: ignore
 
@@ -918,7 +918,14 @@ class DictionaryUI:
             if not bubble.winfo_exists():  # type: ignore
                 return
             tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=10)  # type: ignore
-            self._animate_senses(bubble, entry, entry.senses)  # type: ignore
+            
+            # Khôi phục short_translation cho các từ offline (chỉ có nghĩa TV, không có senses Anh-Anh)
+            short_v = getattr(entry, "short_translation", "")  # type: ignore
+            if short_v:  # type: ignore
+                tk.Label(bubble, text=short_v, font=(FONT, 14, "bold"),  # type: ignore
+                         bg=C["bubble_ai"], fg=C["green"], wraplength=660, justify="left").pack(anchor="w", pady=(0, 10))  # type: ignore
+                         
+            self._animate_senses(bubble, entry, entry.senses or [])  # type: ignore
 
         def stage_2() -> None:
             if not bubble.winfo_exists():  # type: ignore
