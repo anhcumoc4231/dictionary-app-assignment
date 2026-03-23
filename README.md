@@ -1,6 +1,6 @@
-# AI Dictionary Pro 4.0 — Gemini Style Hybrid Architecture
+# 📖 AI Dictionary Pro 4.1 — Integrated Grammar AI
 
-> **PFP191 Assignment Final** — Từ điển Anh-Việt/Việt-Anh với giao diện Chatbot Gemini: O(log n) Binary Search + Dual-mode Google Translate + WOTD Flip Cards.
+> **PFP191 Assignment Final** — Từ điển Anh-Việt/Việt-Anh: O(log n) Binary Search + Gemini-Style AI Chat + **Grammar Correction AI**.
 
 [![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](https://python.org)
 [![UI](https://img.shields.io/badge/UI-Gemini%20Style-purple.svg)](#)
@@ -13,14 +13,13 @@
 
 Chào mừng đến với bản nâng cấp lớn nhất! Không chỉ là tra từ, đây là một trợ lý ngôn ngữ thực thụ với kiến trúc lai (Hybrid) cực mạnh:
 - **Giao diện Gemini:** Trải nghiệm chat mượt mà, bong bóng AI thông minh, hiệu ứng gõ chữ sinh động.
-- **Bộ chọn Chế độ Dịch:** Chuyển đổi linh hoạt giữa **Anh - Việt** (tra cứu chuyên sâu) và **Việt - Anh** (dịch thuật nhanh) ngay trên khung chat.
-- **WOTD Flip Cards:** Trang luyện từ vựng mỗi ngày với phong cách thẻ lật (Flashcards), giúp ghi nhớ từ vựng hiệu quả hơn.
+- **Dịch & Sửa lỗi Grammar**: Tự động nhận diện câu văn tiếng Anh để dịch nghĩa đồng thời chỉ ra lỗi ngữ pháp/chính tả ngay trong khung chat.
+- **WOTD Flip Cards**: Trang luyện từ vựng mỗi ngày với phong cách thẻ lật (Flashcards), giúp ghi nhớ từ vựng hiệu quả hơn.
 - **Tốc độ Thần sầu:** Lần đầu tra từ sẽ tải từ **Free Dictionary API** và dịch qua **Google Translate**. Lần sau, app đọc từ cache ổ đĩa bằng **Binary Search O(log n)** — siêu nhanh, không cần mạng.
 
 ### ✨ Tính năng nổi bật
 
-| Tính năng | Chi tiết |
-|-----------|----------|
+| ✨ AI Grammar | Tự động phát hiện lỗi ngữ pháp, chính tả và gợi ý sửa lỗi trực quan ngay trong bubble chat. |
 | 🤖 Gemini UI | Giao diện Chatbot bong bóng hiện đại, sidebar thu gọn, hiệu ứng Glow ảo diệu. |
 | 🇬🇧/🇻🇳 Dual Mode | Thanh gạt thông minh trên đỉnh khung chat để đổi chiều dịch thuật tức thì. |
 | 🃏 WOTD Cards | Hệ thống thẻ lật 5 từ vựng ngẫu nhiên mỗi lần mở hoặc "Xáo bài" mới. |

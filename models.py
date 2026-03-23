@@ -35,6 +35,35 @@ class Sense:
 
 
 @dataclass
+class GrammarCorrection:
+    """Represents a grammar or spelling correction suggestion."""
+    message: str           # e.g., 'Possible spelling mistake found.'
+    offset: int            # start index in original text
+    length: int            # length of original text to replace
+    error_text: str        # the original text that has error
+    replacements: List[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        return {
+            "message": self.message,
+            "offset": self.offset,
+            "length": self.length,
+            "error_text": self.error_text,
+            "replacements": self.replacements
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict) -> "GrammarCorrection":
+        return cls(
+            message=str(data.get("message", "")),
+            offset=int(data.get("offset", 0)),
+            length=int(data.get("length", 0)),
+            error_text=str(data.get("error_text", "")),
+            replacements=list(data.get("replacements", []))
+        )
+
+
+@dataclass
 class LexicalEntry:
     """
     Encapsulates linguistic data for a single English word based on Cambridge API format.
@@ -46,6 +75,7 @@ class LexicalEntry:
     uk_audio: str = "" # URL to mp3/ogg
     short_translation: str = ""
     senses: List[Sense] = field(default_factory=list)
+    grammar_fixes: List[GrammarCorrection] = field(default_factory=list)
     source: str = "Cambridge" # Tag for debugging
 
     # ------------------------------------------------------------------
@@ -62,6 +92,7 @@ class LexicalEntry:
             "uk_audio": self.uk_audio,
             "short_translation": self.short_translation,
             "senses": [s.to_dict() for s in self.senses],
+            "grammar_fixes": [g.to_dict() for g in self.grammar_fixes],
             "source": self.source
         }
         return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
@@ -77,6 +108,9 @@ class LexicalEntry:
         senses_raw = data.get("senses", [])
         senses = [Sense.from_dict(s) for s in senses_raw if isinstance(s, dict)]
         
+        grammar_raw = data.get("grammar_fixes", [])
+        grammar_fixes = [GrammarCorrection.from_dict(g) for g in grammar_raw if isinstance(g, dict)]
+
         return cls(
             word=str(data.get("word", "")),
             us_ipa=str(data.get("us_ipa", "")),
@@ -85,6 +119,7 @@ class LexicalEntry:
             uk_audio=str(data.get("uk_audio", "")),
             short_translation=str(data.get("short_translation", "")),
             senses=senses,
+            grammar_fixes=grammar_fixes,
             source=str(data.get("source", "Local Cache"))
         )
 

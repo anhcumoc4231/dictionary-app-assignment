@@ -139,10 +139,23 @@ Refinements:
   - Documentation: Updated README to v4.0 and synced absolutely everything to GitHub.
 
 ------------------------------------------
-SUMMARY (Final v4.0)
+[2026-03-23] PHASE 20 — Integrated Grammar Check (AI Integration)
 ------------------------------------------
-Total files: 10+ (including models, storage, app, gui, etc.)
-Key Algorithm: O(log n) Disk Binary Search + O(1) RAM LRU Cache
-Architecture: Hybrid (Offline Local Dictionary + Online Google/FreeDict API)
-UI Style: AI Chatbot (Gemini) with Sidebar and Flashcards
-Status: 100% Complete, Stable, and Documented.
+COMPLETED: Added an automatic grammar and spelling correction layer.
+
+Key Improvements:
+  - Seamless Integration: Grammar check is automatically triggered when a user 
+    searches for an English sentence in the main chat.
+  - LanguageTool API: Powered by a high-performance external API to detect errors.
+  - Visual Feedback: AI bubbles now include a "💡 Grammar Advice" section with 
+    Original vs. Fixed comparisons and explanations.
+  - Hybrid AI Bubble: Displays translation + IPA + Grammar advice in a single unified view.
+
+------------------------------------------
+SUMMARY (Final v4.1)
+------------------------------------------
+Total files: 10+ (Core OOP structure + AI Integration)
+Key Algorithm: O(log n) Disk Binary Search + LanguageTool AI API
+Architecture: Hybrid (Offline Local Dictionary + Online Google/LT API)
+UI Style: AI Chatbot (Gemini) with automatic Grammar Check
+Status: 100% Complete, Stable, and Enterprise-Ready.

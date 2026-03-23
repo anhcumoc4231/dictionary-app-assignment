@@ -7,10 +7,11 @@ app.py - Lớp Vỏ Bọc (DictionaryApp)
 - Ưu tiên #3: Mất mạng? Ra ngoài gọi Free Dictionary API, ghi lại kết quả vào ổ đĩa.
 """
 
+import requests
 import os
 import sys
 from functools import lru_cache
-from typing import Optional
+from typing import Optional, List
 
 # Ensure the project root is on the path so imports work from any working directory
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -57,22 +58,55 @@ class DictionaryApp:
                 return None
 
         # CHẾ ĐỘ 2: ANH - VIỆT (Dùng Cache/API)
-        # TÍNH NĂNG MỚI: Dịch Nguyên Câu bằng Google Translate
+        # TÍNH NĂNG MỚI: Dịch Nguyên Câu & Kiểm tra Ngữ pháp
         if " " in keyword or len(keyword) > 25:
             try:
                 from deep_translator import GoogleTranslator  # type: ignore
                 translated = GoogleTranslator(source='en', target='vi').translate(keyword)
+                
+                # Tự động kiểm tra ngữ pháp
+                grammar_fixes = self._check_grammar(keyword)
+                
                 return LexicalEntry(
                     word=keyword,
                     short_translation=translated,
                     senses=[],
-                    source="Google Translate"
+                    grammar_fixes=grammar_fixes,
+                    source="Google Translate + AI Grammar"
                 )
             except Exception as e:
-                print(f"Sentence translation failed: {e}")
+                print(f"Sentence translation/grammar failed: {e}")
                 return None
 
         return self._lru_cache(keyword.lower())
+
+    def _check_grammar(self, text: str):  # type: ignore
+        """Call LanguageTool API to check English grammar."""
+        try:
+            from models import GrammarCorrection # type: ignore
+            url = "https://api.languagetool.org/v2/check"
+            params = {
+                "text": text,
+                "language": "en-US"
+            }
+            resp = requests.post(url, data=params, timeout=5)
+            if resp.status_code == 200:
+                matches = resp.json().get("matches", [])
+                fixes = []
+                for m in matches:
+                    off = int(m.get("offset", 0))
+                    le  = int(m.get("length", 0))
+                    fixes.append(GrammarCorrection(
+                        message=m.get("message", "Error found"),
+                        offset=off,
+                        length=le,
+                        error_text=text[off : off + le],
+                        replacements=[r.get("value") for r in m.get("replacements", [])][:3]
+                    ))
+                return fixes
+        except Exception as e:
+            print(f"Grammar check failed: {e}")
+        return []
 
     def total_words_cached(self) -> int:
         return self._index.total_records()

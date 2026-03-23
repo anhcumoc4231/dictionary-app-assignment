@@ -942,6 +942,27 @@ class DictionaryUI:
                          bg=C["bubble_ai"], fg=C["green"], wraplength=660, justify="left").pack(anchor="w", pady=(0, 10))  # type: ignore
                          
             self._animate_senses(bubble, entry, entry.senses or [])  # type: ignore
+            
+            # Gợi ý sửa lỗi ngữ pháp (nếu có)
+            if hasattr(entry, "grammar_fixes") and entry.grammar_fixes:  # type: ignore
+                tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=(10, 15))  # type: ignore
+                tk.Label(bubble, text="💡 Gợi ý sửa lỗi ngữ pháp:", font=(FONT, 12, "bold"),  # type: ignore
+                         bg=C["bubble_ai"], fg=C["gold"]).pack(anchor="w")  # type: ignore
+                
+                for fix in entry.grammar_fixes:  # type: ignore
+                    f_row = tk.Frame(bubble, bg=C["bubble_ai"], pady=5)  # type: ignore
+                    f_row.pack(fill="x")  # type: ignore
+                    
+                    # Sai -> Đúng
+                    txt = f'"{fix.error_text}"'  # type: ignore
+                    if fix.replacements:  # type: ignore
+                        txt += f'  ➜  "{fix.replacements[0]}"'  # type: ignore
+                    
+                    tk.Label(f_row, text=txt, font=(FONT, 11, "bold"),  # type: ignore
+                             bg=C["bubble_ai"], fg=C["text_main"]).pack(anchor="w")  # type: ignore
+                    tk.Label(f_row, text=f"({fix.message})", font=(FONT, 10, "italic"),  # type: ignore
+                             bg=C["bubble_ai"], fg=C["text_dim"]).pack(anchor="w", padx=10)  # type: ignore
+
             self._bind_scrolling(row)  # type: ignore
 
         def stage_2() -> None:
