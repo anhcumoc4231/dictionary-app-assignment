@@ -79,6 +79,14 @@ class DictionaryApp:
                 except:
                     pass
 
+                # LỌC BỎ GỢI Ý THỪA: 
+                # Nếu ai_refined đã đổi từ đầu tiên (VD: where -> How), thì xóa cái bắt lỗi "where" -> "Where" của hệ thống cũ (offset 0)
+                if ai_refined and grammar_fixes:
+                    orig_first = keyword.split()[0].lower() if keyword.split() else ""
+                    refined_first = ai_refined.split()[0].lower() if ai_refined.split() else ""
+                    if orig_first != refined_first:
+                         grammar_fixes = [f for f in grammar_fixes if f.offset != 0]
+
                 return LexicalEntry(
                     word=keyword,
                     short_translation=translated,
