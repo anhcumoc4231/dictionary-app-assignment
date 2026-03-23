@@ -96,14 +96,15 @@ class DictionaryUI:
         self.root.minsize(760, 520)  # type: ignore
 
         # ── state ──
+        self._current_page:  str = "chat"
+        self._scrollers:    dict = {} # Canvas per page  # type: ignore
+        self._search_mode:   str = "en_vi"
         self._dict_app:    Optional[DictionaryApp] = None  # type: ignore
         self._words:       List[str] = []  # type: ignore
         self._search_var = tk.StringVar()  # type: ignore
         self._last_entry:  Optional[LexicalEntry] = None  # type: ignore
         self._entry:       Optional[tk.Entry] = None  # type: ignore
         self._history:     List[str] = []  # type: ignore
-        self._current_page = ""  # type: ignore
-        self._search_mode  = "en_vi"  # type: ignore  # "en_vi" or "vi_en"
         self._sidebar_expanded = False  # type: ignore
         self._glow_job:    Optional[str] = None  # type: ignore
         self._glow_on      = False  # type: ignore
@@ -404,7 +405,7 @@ class DictionaryUI:
         )  # type: ignore
         self._chat_frame.bind("<Configure>", self._on_frame_configure)  # type: ignore
         self._canvas.bind("<Configure>", self._on_canvas_configure)  # type: ignore
-        self._canvas.bind_all("<MouseWheel>", self._on_mousewheel)  # type: ignore
+        self._scrollers["chat"] = self._canvas  # type: ignore
 
         # ── Input bar ──────────────────────────────────────────────────────
         tk.Frame(parent, bg=C["border"], height=1).pack(fill="x")  # type: ignore
@@ -484,6 +485,7 @@ class DictionaryUI:
         canvas.configure(yscrollcommand=scr.set)  # type: ignore
         canvas.pack(side="left", fill="both", expand=True)  # type: ignore
         scr.pack(side="right", fill="y")  # type: ignore
+        self._scrollers["bookmarks"] = canvas  # type: ignore
         lf.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))  # type: ignore
 
         def _add_item(idx: int, line: str) -> None:
@@ -543,6 +545,7 @@ class DictionaryUI:
                                 highlightthickness=0, yscrollcommand=wotd_scr.set)  # type: ignore
         wotd_canvas.pack(side="left", fill="both", expand=True)  # type: ignore
         wotd_scr.config(command=wotd_canvas.yview)  # type: ignore
+        self._scrollers["wotd"] = wotd_canvas  # type: ignore
 
         body = tk.Frame(wotd_canvas, bg=C["chat_bg"])  # type: ignore
         wotd_win = wotd_canvas.create_window((0, 0), window=body, anchor="nw")  # type: ignore
@@ -551,13 +554,6 @@ class DictionaryUI:
             wotd_canvas.itemconfig(wotd_win, width=e.width)  # type: ignore
         wotd_canvas.bind("<Configure>", _on_resize)  # type: ignore
         body.bind("<Configure>", lambda e: wotd_canvas.configure(scrollregion=wotd_canvas.bbox("all")))  # type: ignore
-        def _scroll_wotd(e: object) -> None:
-            try:  # type: ignore
-                if self._current_page == "wotd" and wotd_canvas.winfo_exists():  # type: ignore
-                    wotd_canvas.yview_scroll(int(-1*(e.delta/120)), "units")  # type: ignore
-            except Exception:  # type: ignore
-                pass
-        wotd_canvas.bind_all("<MouseWheel>", _scroll_wotd)  # type: ignore
 
         # 2. Card Generation
         if not self._words or not self._dict_app:  # type: ignore
@@ -847,8 +843,13 @@ class DictionaryUI:
             self._canvas.itemconfig(self._chat_window, width=event.width)  # type: ignore
 
     def _on_mousewheel(self, event: object) -> None:  # type: ignore
-        if self._current_page == "chat" and self._canvas:  # type: ignore
-            self._canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")  # type: ignore
+        p = self._current_page  # type: ignore
+        canv = self._scrollers.get(p)  # type: ignore
+        if canv and canv.winfo_exists():  # type: ignore
+            try:  # type: ignore
+                canv.yview_scroll(int(-1 * (event.delta / 120)), "units")  # type: ignore
+            except Exception:  # type: ignore
+                pass
 
     def _scroll_to_bottom(self) -> None:
         if self._canvas:  # type: ignore
