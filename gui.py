@@ -914,6 +914,9 @@ class DictionaryUI:
                            bg=C["bubble_ai"], fg=C["text_dim"])  # type: ignore
         ipa_lbl.pack(side="left", anchor="s", padx=(8, 0), pady=(0, 4))  # type: ignore
 
+        src_lbl = tk.Label(bubble, text="", font=(FONT, 9),  # type: ignore
+                           bg=C["bubble_ai"], fg=C["text_dim"])  # type: ignore
+
         def stage_3() -> None:
             if not bubble.winfo_exists():  # type: ignore
                 return
