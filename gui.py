@@ -943,25 +943,47 @@ class DictionaryUI:
                          
             self._animate_senses(bubble, entry, entry.senses or [])  # type: ignore
             
-            # Gợi ý sửa lỗi ngữ pháp (nếu có)
+            # ✨ AI Refined Version (Back-translation)
+            if hasattr(entry, "ai_refined") and entry.ai_refined:  # type: ignore
+                tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=(10, 5))  # type: ignore
+                tk.Label(bubble, text="✨ AI Suggestion (Better English):", font=(FONT, 12, "bold"),  # type: ignore
+                         bg=C["bubble_ai"], fg=C["green"]).pack(anchor="w")  # type: ignore
+                tk.Label(bubble, text=f'"{entry.ai_refined}"', font=(FONT, 13, "italic"),  # type: ignore
+                         bg=C["bubble_ai"], fg=C["text_main"], wraplength=660, justify="left").pack(anchor="w", pady=(5, 10))  # type: ignore
+
+            # 💡 Grammar Corrections with Red Underline
             if hasattr(entry, "grammar_fixes") and entry.grammar_fixes:  # type: ignore
-                tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=(10, 15))  # type: ignore
-                tk.Label(bubble, text="💡 Gợi ý sửa lỗi ngữ pháp:", font=(FONT, 12, "bold"),  # type: ignore
+                tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=(5, 15))  # type: ignore
+                tk.Label(bubble, text="💡 Giải thích lỗi ngữ pháp:", font=(FONT, 12, "bold"),  # type: ignore
                          bg=C["bubble_ai"], fg=C["gold"]).pack(anchor="w")  # type: ignore
                 
                 for fix in entry.grammar_fixes:  # type: ignore
                     f_row = tk.Frame(bubble, bg=C["bubble_ai"], pady=5)  # type: ignore
                     f_row.pack(fill="x")  # type: ignore
                     
-                    # Sai -> Đúng
-                    txt = f'"{fix.error_text}"'  # type: ignore
-                    if fix.replacements:  # type: ignore
-                        txt += f'  ➜  "{fix.replacements[0]}"'  # type: ignore
+                    # Hiển thị lỗi có gạch chân đỏ
+                    err_box = tk.Text(f_row, font=(FONT, 11), bg=C["bubble_ai"], fg=C["text_main"],  # type: ignore
+                                    height=1, bd=0, highlightthickness=0, padx=0, pady=0)
+                    err_box.pack(anchor="w")
                     
-                    tk.Label(f_row, text=txt, font=(FONT, 11, "bold"),  # type: ignore
-                             bg=C["bubble_ai"], fg=C["text_main"]).pack(anchor="w")  # type: ignore
+                    original_input = entry.word # type: ignore
+                    err_box.insert("1.0", f'"{original_input}"')  # type: ignore
+                    
+                    # Tính toán vị trí gạch chân (cộng 1 vì có dấu ngoặc kép ở đầu)
+                    start_idx = f"1.{fix.offset + 1}"  # type: ignore
+                    end_idx = f"1.{fix.offset + 1 + fix.length}"  # type: ignore
+                    
+                    err_box.tag_configure("error", foreground="#EF4444", font=(FONT, 11, "bold", "underline"))  # type: ignore
+                    err_box.tag_add("error", start_idx, end_idx)  # type: ignore
+                    err_box.config(state="disabled")  # type: ignore
+
+                    # Gợi ý sửa
+                    if fix.replacements:  # type: ignore
+                        tk.Label(f_row, text=f' ➜ Nên sửa thành: "{fix.replacements[0]}"', font=(FONT, 11, "bold"),  # type: ignore
+                                 bg=C["bubble_ai"], fg=C["green"]).pack(anchor="w", padx=10)  # type: ignore
+                    
                     tk.Label(f_row, text=f"({fix.message})", font=(FONT, 10, "italic"),  # type: ignore
-                             bg=C["bubble_ai"], fg=C["text_dim"]).pack(anchor="w", padx=10)  # type: ignore
+                             bg=C["bubble_ai"], fg=C["text_dim"]).pack(anchor="w", padx=20)  # type: ignore
 
             self._bind_scrolling(row)  # type: ignore
 

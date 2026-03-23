@@ -64,14 +64,25 @@ class DictionaryApp:
                 from deep_translator import GoogleTranslator  # type: ignore
                 translated = GoogleTranslator(source='en', target='vi').translate(keyword)
                 
-                # Tự động kiểm tra ngữ pháp
+                # Tự động kiểm tra ngữ pháp (LanguageTool)
                 grammar_fixes = self._check_grammar(keyword)
                 
+                # AI Refinement (Back-translation trick for high accuracy)
+                # Dịch từ VI ngược lại EN để tìm câu chuẩn nhất
+                ai_refined = ""
+                try:
+                    ai_refined = GoogleTranslator(source='vi', target='en').translate(translated)
+                    if ai_refined.lower().strip("?.!") == keyword.lower().strip("?.!"):
+                        ai_refined = "" # Giống hệt thì thôi
+                except:
+                    pass
+
                 return LexicalEntry(
                     word=keyword,
                     short_translation=translated,
                     senses=[],
                     grammar_fixes=grammar_fixes,
+                    ai_refined=ai_refined,
                     source="Google Translate + AI Grammar"
                 )
             except Exception as e:

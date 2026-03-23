@@ -76,6 +76,7 @@ class LexicalEntry:
     short_translation: str = ""
     senses: List[Sense] = field(default_factory=list)
     grammar_fixes: List[GrammarCorrection] = field(default_factory=list)
+    ai_refined: str = "" # Best version from back-translation
     source: str = "Cambridge" # Tag for debugging
 
     # ------------------------------------------------------------------
@@ -93,6 +94,7 @@ class LexicalEntry:
             "short_translation": self.short_translation,
             "senses": [s.to_dict() for s in self.senses],
             "grammar_fixes": [g.to_dict() for g in self.grammar_fixes],
+            "ai_refined": self.ai_refined,
             "source": self.source
         }
         return json.dumps(data, ensure_ascii=False, separators=(",", ":"))
@@ -120,6 +122,7 @@ class LexicalEntry:
             short_translation=str(data.get("short_translation", "")),
             senses=senses,
             grammar_fixes=grammar_fixes,
+            ai_refined=str(data.get("ai_refined", "")),
             source=str(data.get("source", "Local Cache"))
         )
 
