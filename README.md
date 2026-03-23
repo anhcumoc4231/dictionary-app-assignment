@@ -1,31 +1,32 @@
-# 📖 Từ Điển Anh-Việt — Hybrid FreeDict Architecture
+# AI Dictionary Pro 4.0 — Gemini Style Hybrid Architecture
 
-> **PFP191 Assignment** — English-Vietnamese Dictionary with Hybrid Architecture: O(log n) Binary Search + Free Dictionary API + Real-time Vietnamese Translation
+> **PFP191 Assignment Final** — Từ điển Anh-Việt/Việt-Anh với giao diện Chatbot Gemini: O(log n) Binary Search + Dual-mode Google Translate + WOTD Flip Cards.
 
-[![Python](https://img.shields.io/badge/Python-3.10+-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/Python-3.14-blue.svg)](https://python.org)
+[![UI](https://img.shields.io/badge/UI-Gemini%20Style-purple.svg)](#)
 [![Algorithm](https://img.shields.io/badge/Search-O(log%20n)%20Binary-green.svg)](#)
-[![Cache](https://img.shields.io/badge/Cache-O(1)%20LRU-yellow.svg)](#)
-[![API](https://img.shields.io/badge/API-Free%20Dictionary-brightgreen.svg)](https://dictionaryapi.dev)
+[![Translation](https://img.shields.io/badge/Mode-Dual%20(EN--VI%20%26%20VI--EN)-orange.svg)](#)
 
 ---
 
-## 📋 Tổng quan Dự án
+## 🌟 Siêu phẩm Từ điển 4.0
 
-Ứng dụng từ điển **Anh-Việt** với kiến trúc lai (Hybrid):
-- Lần đầu tra từ: Gọi **Free Dictionary API** (miễn phí, không cần key) → tự động dịch nghĩa sang tiếng Việt qua **Google Translate** → lưu vào ổ đĩa.
-- Lần tra lại: Đọc thẳng từ cache ổ đĩa bằng **Binary Search O(log n)** — không tốn 1 byte băng thông.
+Chào mừng đến với bản nâng cấp lớn nhất! Không chỉ là tra từ, đây là một trợ lý ngôn ngữ thực thụ với kiến trúc lai (Hybrid) cực mạnh:
+- **Giao diện Gemini:** Trải nghiệm chat mượt mà, bong bóng AI thông minh, hiệu ứng gõ chữ sinh động.
+- **Bộ chọn Chế độ Dịch:** Chuyển đổi linh hoạt giữa **Anh - Việt** (tra cứu chuyên sâu) và **Việt - Anh** (dịch thuật nhanh) ngay trên khung chat.
+- **WOTD Flip Cards:** Trang luyện từ vựng mỗi ngày với phong cách thẻ lật (Flashcards), giúp ghi nhớ từ vựng hiệu quả hơn.
+- **Tốc độ Thần sầu:** Lần đầu tra từ sẽ tải từ **Free Dictionary API** và dịch qua **Google Translate**. Lần sau, app đọc từ cache ổ đĩa bằng **Binary Search O(log n)** — siêu nhanh, không cần mạng.
 
-### ✨ Tính năng
+### ✨ Tính năng nổi bật
 
 | Tính năng | Chi tiết |
 |-----------|----------|
-| 🔍 Tra cứu Hybrid | Binary Search O(log n) on-disk + Free Dictionary API |
-| 🇻🇳 Nghĩa Tiếng Việt | Dịch tự động qua Google Translate (deep-translator) |
-| ⚡ Mỳ ăn liền | Nghĩa ngắn gọn hiển thị ngay bên dưới từ vựng |
-| 💾 Cache | LRU Cache O(1) trên RAM + Binary Search O(log n) trên đĩa |
-| 🎵 Âm thanh | Phát MP3 giọng US/UK từ API (hoặc pyttsx3 offline) |
-| ⌨️ Autocomplete | Gợi ý từ vựng từ kho 5,000 từ phổ biến nhất |
-| 🖥️ GUI | Giao diện Chatbot AI (Tương tự ChatGPT/Claude) |
+| 🤖 Gemini UI | Giao diện Chatbot bong bóng hiện đại, sidebar thu gọn, hiệu ứng Glow ảo diệu. |
+| 🇬🇧/🇻🇳 Dual Mode | Thanh gạt thông minh trên đỉnh khung chat để đổi chiều dịch thuật tức thì. |
+| 🃏 WOTD Cards | Hệ thống thẻ lật 5 từ vựng ngẫu nhiên mỗi lần mở hoặc "Xáo bài" mới. |
+| 🔍 Tra cứu Hybrid | Kết hợp dữ liệu Local (O(log n)) và API (TFlat Style) để luôn có kết quả tốt nhất. |
+| 💾 Siêu Cache | LRU Cache O(1) trên RAM + Binary Search O(log n) trên đĩa (Data 53-byte fixed). |
+| ⭐ Bookmarks | Lưu từ yêu thích vào sổ tay, xem lại bằng icon 📖 trên Sidebar. |
 
 ---
 
@@ -33,13 +34,13 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                gui.py (DictionaryUI)                │  ← Giao diện Tkinter
-│  AI Chatbot Interface · Bubble Chat · Autocomplete  │
+│                gui.py (DictionaryUI)                │  ← Gemini UI Layer
+│  Sidebar · Mode Switcher · Bubble Animation · WOTD  │
 └─────────────────────┬───────────────────────────────┘
-                      │ calls
+                      │ calls (mode: en_vi / vi_en)
 ┌─────────────────────▼───────────────────────────────┐
-│              app.py (DictionaryApp)                 │  ← Facade + LRU Cache
-│          RAM O(1) cache · Layer coordinator         │
+│              app.py (DictionaryApp)                 │  ← Logic Controller
+│   Translation Strategy · LRU Cache · Multi-source   │
 └──────┬───────────────────────────────────┬──────────┘
        │                                   │
 ┌──────▼──────────┐             ┌──────────▼──────────┐
@@ -49,48 +50,23 @@
 └──────┬──────────┘             └─────────────────────┘
        │ (on MISS)
 ┌──────▼──────────────────┐
-│   free_dict_api.py       │  ← Free Dictionary API
-│  + deep-translator       │     + Google Translate (VI)
-│  + Insert into cache     │
+│   free_dict_api.py       │  ← Deep Translator Layer
+│  + Free Dictionary API   │     + Google Translate (EN/VI)
+│  + Async Cache Sync      │
 └──────────────────────────┘
 ```
-
-### Cấu trúc bản ghi index.data (53-byte fixed-width)
-
-```
-┌──────────────────────────────────────┬──────────────┬──────────┬──────┐
-│  keyword (32 bytes, space-padded)    │ offset (12B) │ len (8B) │  \n  │
-└──────────────────────────────────────┴──────────────┴──────────┴──────┘
-  Ví dụ: "apple                           " + "000000001024" + "00000287" + "\n"
-```
-
-**Tìm kiếm nhị phân:** `seek(mid * 53)` → hạ cánh chính xác vào đầu record.
 
 ---
 
 ## 🚀 Hướng dẫn Cài đặt & Chạy
 
-### Yêu cầu
-- Python 3.10+
-- Kết nối Internet (lần đầu tra từ mới)
+### 1. Cách nhanh nhất (Dành cho người dùng)
+Tải file **`dist/gui.exe`** trong repository này về và chạy ngay trên Windows. Không cần cài Python, không cần cài thư viện!
 
-### Bước 1 — Cài thư viện
-
-```powershell
-pip install -r requirements.txt
-```
-
-### Bước 2 — Chạy ứng dụng
-
-```powershell
-python gui.py
-```
-
-> Không cần cài đặt gì thêm! Lần đầu tra từ sẽ tự động tải dữ liệu từ API và lưu vào máy.
-
-### Hoặc chạy file `.exe` trực tiếp (Windows)
-
-Tải file `dist/gui.exe` từ repo này, chạy thẳng — không cần cài Python!
+### 2. Dành cho nhà phát triển
+- Cài đặt Python 3.10 trở lên.
+- Cài đặt thư viện: `pip install -r requirements.txt`
+- Chạy ứng dụng: `python gui.py`
 
 ---
 
