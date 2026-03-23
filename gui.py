@@ -908,11 +908,11 @@ class DictionaryUI:
         
         title_lbl = tk.Label(title_frame, text="", font=(FONT, 22, "bold"),  # type: ignore
                              bg=C["bubble_ai"], fg=C["text_main"])  # type: ignore
-        title_lbl.pack(side="left", anchor="bottom")  # type: ignore
+        title_lbl.pack(side="left", anchor="s")  # type: ignore
         
         ipa_lbl = tk.Label(title_frame, text="", font=(FONT, 14),  # type: ignore
                            bg=C["bubble_ai"], fg=C["text_dim"])  # type: ignore
-        ipa_lbl.pack(side="left", anchor="bottom", padx=(8, 0), pady=(0, 4))  # type: ignore
+        ipa_lbl.pack(side="left", anchor="s", padx=(8, 0), pady=(0, 4))  # type: ignore
 
         def stage_3() -> None:
             if not bubble.winfo_exists():  # type: ignore
@@ -1033,7 +1033,7 @@ class DictionaryUI:
             return
 
         en_lbl = tk.Label(bubble, text="", font=(FONT, 10, "italic"),  # type: ignore
-                          bg=C["bubble_ai"], fg=C["text_example"],  # type: ignore
+                          bg=C["bubble_ai"], fg="#BAE6FD",  # type: ignore
                           wraplength=640, justify="left")  # type: ignore
         en_lbl.pack(anchor="w", padx=(10, 0))  # type: ignore
 
