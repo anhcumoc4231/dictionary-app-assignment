@@ -106,10 +106,43 @@ Performance enhancements:
 Files also created: build_index.py, requirements.txt, .gitignore
 
 ------------------------------------------
-SUMMARY
+[2026-03-20] PHASE 5 — UI Refactoring (Gemini Style)
 ------------------------------------------
-Total files created: 9 (models.py, storage.py, index_navigator.py, app.py,
-                        build_database.py, build_index.py, gui.py,
-                        requirements.txt, .gitignore)
-Algorithm complexity: O(log n) lookup, O(1) cached repeat lookup
-Data: 100 embedded EN-VI entries with IPA + context examples
+COMPLETED: Overhauled the interface from a basic dictionary to an AI Chatbot experience.
+
+Key Improvements:
+  - Sidebar Navigation: Toggleable sidebar for Search, Bookmarks, History, and Settings.
+  - Chat Bubble System: Differentiated AI vs. User messages with dynamic rendering.
+  - Typing Animation: Simulated "typing" effect for AI responses to improve UX.
+  - Modern Palette: Use of #0F172A (Navy) and #6366F1 (Indigo) for a premium feel.
+
+------------------------------------------
+[2026-03-20] PHASE 6 — Bilingual Translation & WOTD
+------------------------------------------
+COMPLETED: Implemented complex translation logic and a new vocabulary learning module.
+
+New Features:
+  - Bilingual Toggle: Integrated a ModeSwitcher to swap between EN-VI and VI-EN.
+  - Sentence Translation: Enabled full-sentence translation using Google API.
+  - Word of the Day (WOTD): Added a dedicated page with "Flip Card" components.
+  - Randomization logic: Samples words from the local dictionary for the WOTD cards.
+
+------------------------------------------
+[2026-03-23] PHASE 7 — Interaction Polishing & Final Backup
+------------------------------------------
+COMPLETED: Fixed critical UX bugs and prepared for final delivery.
+
+Refinements:
+  - Scroll Delegation: Fixed a global MouseWheel conflict using a recursive binding
+    strategy (_bind_scrolling) to allow scrolling even when hovering over bubbles.
+  - Stability: Wrapped navigation in try-except blocks to prevent blank screen crashes.
+  - Documentation: Updated README to v4.0 and synced absolutely everything to GitHub.
+
+------------------------------------------
+SUMMARY (Final v4.0)
+------------------------------------------
+Total files: 10+ (including models, storage, app, gui, etc.)
+Key Algorithm: O(log n) Disk Binary Search + O(1) RAM LRU Cache
+Architecture: Hybrid (Offline Local Dictionary + Online Google/FreeDict API)
+UI Style: AI Chatbot (Gemini) with Sidebar and Flashcards
+Status: 100% Complete, Stable, and Documented.

@@ -44,16 +44,16 @@ Chào mừng đến với bản nâng cấp lớn nhất! Không chỉ là tra t
 └──────┬───────────────────────────────────┬──────────┘
        │                                   │
 ┌──────▼──────────┐             ┌──────────▼──────────┐
-│ index_navigator │             │     storage.py       │
-│ O(log n) Binary │             │  (StorageEngine)     │
-│ Search on disk  │             │  seek/read binary    │
+│ index_navigator │             │     storage.py      │
+│ O(log n) Binary │             │  (StorageEngine)    │
+│ Search on disk  │             │  seek/read binary   │
 └──────┬──────────┘             └─────────────────────┘
        │ (on MISS)
 ┌──────▼──────────────────┐
-│   free_dict_api.py       │  ← Deep Translator Layer
-│  + Free Dictionary API   │     + Google Translate (EN/VI)
-│  + Async Cache Sync      │
-└──────────────────────────┘
+│   free_dict_api.py      │  ← Deep Translator Layer
+│  + Free Dictionary API  │  + Google Translate (EN/VI)
+│  + Async Cache Sync     │
+└─────────────────────────┘
 ```
 
 ---

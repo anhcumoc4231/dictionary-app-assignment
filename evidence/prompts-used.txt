@@ -85,11 +85,55 @@ AI assistance received:
 Code incorporated into: app.py
 
 ------------------------------------------
-SUMMARY OF AI TOOL USAGE
+SESSION 2 — 2026-03-20 to 2026-03-23 (Gemini UI & Polishing)
 ------------------------------------------
-Total AI prompts used      : 5
-AI assistance category     : Architecture design, algorithm explanation,
-                             code generation, debugging guidance
-Code written independently : evidence files, .gitignore, requirements.txt,
-                             sample data entries (word definitions curated manually)
+
+PROMPT 6 — Gemini UI & Sidebar Architecture
+Question: 
+  "Tái cấu trúc giao diện sang phong cách Gemini Chatbot. Cần có Sidebar bên trái
+   có thể thu gọn, khung chat chính với bong bóng tin nhắn trái/phải, và hiệu ứng gõ chữ sinh động.
+   Làm thế nào để quản lý các trang khác nhau trong Tkinter?"
+
+AI assistance:
+  - Suggested using a main container Frame and a dictionary of builders for each page.
+  - Recommended placing Sidebar on the left and content on the right.
+  - Provided logic for toggling sidebar width (60px vs 240px).
+
+PROMPT 7 — Dual-mode Translation Logic
+Question:
+  "Thêm tính năng dịch song ngữ. Phía trên khung chat cần một bộ chọn (Switch) 
+   để đổi giữa Anh-Việt và Việt-Anh. Làm thế nào để gọi Google Translate 
+   hiệu quả mà không bị chặn (rate-limit)?"
+
+AI assistance:
+  - Suggested using deep-translator (GoogleTranslator class).
+  - Recommended passing the mode ('en_vi' or 'vi_en') from GUI to backend find_word logic.
+  - Implemented sentence detection logic (long strings go to API directly).
+
+PROMPT 8 — Word of the Day (WOTD) Flashcards
+Question:
+  "Thiết kế trang WOTD với 5 thẻ vựng ngẫu nhiên. Khi nhấn vào thẻ thì hiện nghĩa (Flip card effect).
+   Làm thế nào để lấy ngẫu nhiên từ địa phương O(1)?"
+
+AI assistance:
+  - Suggested reading the index.data file once to get all words, then using random.sample.
+  - Provided the Layout design using rounded rectangles and gold accents.
+
+PROMPT 9 — MouseWheel Scrolling Delegation
+Question:
+  "Tại sao khi di chuột vào bong bóng chat thì không cuộn được canvas chính nữa? 
+   Làm thế nào để 'ủy quyền' (delegate) sự kiện MouseWheel từ Widget con lên Widget cha?"
+
+AI assistance:
+  - Explained that child widgets swallow mouse events in Tkinter.
+  - Provided a recursive binding helper (_bind_scrolling) that binds the same scroll
+    handler to every child widget created dynamically.
+
+------------------------------------------
+SUMMARY OF AI TOOL USAGE (Final v4.0)
+------------------------------------------
+Total AI prompts used      : 9
+AI assistance category     : UX/UI design, Bilingual logic, Algorithm optimization,
+                             Event propagation debugging.
 AI tool used               : Google Gemini / Antigravity AI Coding Assistant
+Final Status               : Stable v4.0 with "Everything on GitHub".
