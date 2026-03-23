@@ -301,18 +301,27 @@ class DictionaryUI:
             "settings":  self._build_settings_page,  # type: ignore
         }  # type: ignore
 
-        if pid in self._LIVE_PAGES and pid in self._pages:  # type: ignore
-            # Rebuild live page in place
-            for w in self._pages[pid].winfo_children():  # type: ignore
-                w.destroy()  # type: ignore
-            builders[pid](self._pages[pid])  # type: ignore
-        elif pid not in self._pages:  # type: ignore
-            frame = tk.Frame(self._main_frame, bg=C["bg"])  # type: ignore
-            self._pages[pid] = frame  # type: ignore
-            builders[pid](frame)  # type: ignore
+        try:  # type: ignore
+            if pid in self._LIVE_PAGES and pid in self._pages:  # type: ignore
+                # Rebuild live page in place
+                for w in self._pages[pid].winfo_children():  # type: ignore
+                    w.destroy()  # type: ignore
+                builders[pid](self._pages[pid])  # type: ignore
+            elif pid not in self._pages:  # type: ignore
+                frame = tk.Frame(self._main_frame, bg=C["bg"])  # type: ignore
+                self._pages[pid] = frame  # type: ignore
+                builders[pid](frame)  # type: ignore
 
-        self._pages[pid].pack(fill="both", expand=True)  # type: ignore
-        self._set_nav_active(pid)  # type: ignore
+            self._pages[pid].pack(fill="both", expand=True)  # type: ignore
+            self._set_nav_active(pid)  # type: ignore
+        except Exception as e:  # type: ignore
+            print(f"Page builder error [{pid}]: {e}")  # type: ignore
+            # Even if builder fails, ensure current page is packed (might be empty but not black)
+            if pid in self._pages:  # type: ignore
+                 self._pages[pid].pack(fill="both", expand=True)  # type: ignore
+                 tk.Label(self._pages[pid], text=f"Lỗi khi nạp trang {pid}.\nVui lòng thử lại hoặc khởi động lại ứng dụng.", # type: ignore
+                          bg=C["bg"], fg=C["red"], pady=40).pack() # type: ignore
+            self._set_nav_active(pid)  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Page: Chat
@@ -542,16 +551,24 @@ class DictionaryUI:
             wotd_canvas.itemconfig(wotd_win, width=e.width)  # type: ignore
         wotd_canvas.bind("<Configure>", _on_resize)  # type: ignore
         body.bind("<Configure>", lambda e: wotd_canvas.configure(scrollregion=wotd_canvas.bbox("all")))  # type: ignore
-        wotd_canvas.bind_all("<MouseWheel>", lambda e: wotd_canvas.yview_scroll(int(-1*(e.delta/120)), "units") if self._current_page=="wotd" else None)  # type: ignore
+        def _scroll_wotd(e: object) -> None:
+            try:  # type: ignore
+                if self._current_page == "wotd" and wotd_canvas.winfo_exists():  # type: ignore
+                    wotd_canvas.yview_scroll(int(-1*(e.delta/120)), "units")  # type: ignore
+            except Exception:  # type: ignore
+                pass
+        wotd_canvas.bind_all("<MouseWheel>", _scroll_wotd)  # type: ignore
 
         # 2. Card Generation
         if not self._words or not self._dict_app:  # type: ignore
             tk.Label(body, text="⏳ Đang tải dữ liệu...",  # type: ignore
                      bg=C["chat_bg"], fg=C["text_dim"], font=(FONT, 13)).pack(pady=60)  # type: ignore
         else:
-            valid_words = [w for w in self._words if w in self._dict_app._cache]  # type: ignore
-            if not valid_words: valid_words = self._words  # type: ignore
-            words = random.sample(valid_words, min(5, len(valid_words)))  # type: ignore
+            # Randomly sample 5 words from the list
+            if self._words:
+                words = random.sample(self._words, min(5, len(self._words)))  # type: ignore
+            else:
+                words = []  # type: ignore
             
             CARD_BG  = ["#3730A3", "#9D174D", "#065F46", "#92400E", "#1E40AF"]  # type: ignore
             CARD_HOV = ["#4338CA", "#BE185D", "#047857", "#B45309", "#1D4ED8"]  # type: ignore
