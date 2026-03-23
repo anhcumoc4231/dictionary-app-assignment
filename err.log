@@ -1,0 +1,5 @@
+Traceback (most recent call last):
+  File "<string>", line 19, in <module>
+    e = app.find_word('typhoon')
+        ^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'find_word'

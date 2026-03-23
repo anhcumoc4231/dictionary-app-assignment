@@ -103,6 +103,7 @@ class DictionaryUI:
         self._entry:       Optional[tk.Entry] = None  # type: ignore
         self._history:     List[str] = []  # type: ignore
         self._current_page = ""  # type: ignore
+        self._search_mode  = "en_vi"  # type: ignore  # "en_vi" or "vi_en"
         self._sidebar_expanded = False  # type: ignore
         self._glow_job:    Optional[str] = None  # type: ignore
         self._glow_on      = False  # type: ignore
@@ -318,7 +319,39 @@ class DictionaryUI:
     # ══════════════════════════════════════════════════════════════════════════
 
     def _build_chat_page(self, parent: tk.Frame) -> None:  # type: ignore
-        # Top bar (minimal, no heavy header)
+        # 1. Header with Mode Switcher
+        header = tk.Frame(parent, bg=C["bg"], pady=15)  # type: ignore
+        header.pack(fill="x", padx=40)  # type: ignore
+        
+        mode_box = tk.Frame(header, bg=C["sidebar"], padx=2, pady=2)  # type: ignore
+        mode_box.pack(anchor="w")  # type: ignore
+
+        self._btn_en_vi = tk.Label(mode_box, text="🇬🇧 Anh - Việt", font=(FONT, 9, "bold"),  # type: ignore
+                                   bg=C["sidebar_act"], fg=C["accent"], padx=15, pady=6, cursor="hand2")  # type: ignore
+        self._btn_en_vi.pack(side="left")  # type: ignore
+
+        self._btn_vi_en = tk.Label(mode_box, text="🇻🇳 Việt - Anh", font=(FONT, 9),  # type: ignore
+                                   bg=C["sidebar"], fg=C["text_dim"], padx=15, pady=6, cursor="hand2")  # type: ignore
+        self._btn_vi_en.pack(side="left")  # type: ignore
+
+        def switch_mode(m: str) -> None:
+            self._search_mode = m  # type: ignore
+            active_bg, active_fg = C["sidebar_act"], C["accent"]  # type: ignore
+            idle_bg, idle_fg = C["sidebar"], C["text_dim"]  # type: ignore
+            
+            if m == "en_vi":  # type: ignore
+                self._btn_en_vi.config(bg=active_bg, fg=active_fg, font=(FONT, 9, "bold"))  # type: ignore
+                self._btn_vi_en.config(bg=idle_bg,   fg=idle_fg,   font=(FONT, 9))  # type: ignore
+                self._search_var.set("")  # type: ignore
+            else:  # type: ignore
+                self._btn_en_vi.config(bg=idle_bg,   fg=idle_fg,   font=(FONT, 9))  # type: ignore
+                self._btn_vi_en.config(bg=active_bg, fg=active_fg, font=(FONT, 9, "bold"))  # type: ignore
+                self._search_var.set("")  # type: ignore
+
+        self._btn_en_vi.bind("<Button-1>", lambda e: switch_mode("en_vi"))  # type: ignore
+        self._btn_vi_en.bind("<Button-1>", lambda e: switch_mode("vi_en"))  # type: ignore
+
+        # 2. Canvas & Scrollbar (minimal, no heavy header)
         topbar = tk.Frame(parent, bg=C["bg"], pady=8)  # type: ignore
         topbar.pack(fill="x", padx=18)  # type: ignore
 
@@ -489,7 +522,7 @@ class DictionaryUI:
                  font=(FONT, 10), bg=C["bg"], fg=C["text_dim"]).pack(pady=(0, 6))  # type: ignore
         tk.Frame(parent, bg=C["border"], height=1).pack(fill="x")  # type: ignore
 
-        # --- Scrollable area ---
+        # 1. Scrollable area
         outer = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         outer.pack(fill="both", expand=True)  # type: ignore
 
@@ -511,136 +544,89 @@ class DictionaryUI:
         body.bind("<Configure>", lambda e: wotd_canvas.configure(scrollregion=wotd_canvas.bbox("all")))  # type: ignore
         wotd_canvas.bind_all("<MouseWheel>", lambda e: wotd_canvas.yview_scroll(int(-1*(e.delta/120)), "units") if self._current_page=="wotd" else None)  # type: ignore
 
+        # 2. Card Generation
         if not self._words or not self._dict_app:  # type: ignore
             tk.Label(body, text="⏳ Đang tải dữ liệu...",  # type: ignore
                      bg=C["chat_bg"], fg=C["text_dim"], font=(FONT, 13)).pack(pady=60)  # type: ignore
+        else:
+            valid_words = [w for w in self._words if w in self._dict_app._cache]  # type: ignore
+            if not valid_words: valid_words = self._words  # type: ignore
+            words = random.sample(valid_words, min(5, len(valid_words)))  # type: ignore
+            
+            CARD_BG  = ["#3730A3", "#9D174D", "#065F46", "#92400E", "#1E40AF"]  # type: ignore
+            CARD_HOV = ["#4338CA", "#BE185D", "#047857", "#B45309", "#1D4ED8"]  # type: ignore
+
+            for i, w in enumerate(words):  # type: ignore
+                self._make_wotd_card(body, i, w, CARD_BG, CARD_HOV)  # type: ignore
+
+        # 3. Shuffle button (always pack this)
+        btn_row = tk.Frame(parent, bg=C["bg"])  # type: ignore
+        btn_row.pack(fill="x", pady=15)  # type: ignore
+        
+        def _shuffle():  # type: ignore
+            self._show_page("wotd")  # type: ignore
+
+        shuffle_btn = tk.Label(btn_row, text="🔄  Xáo bài mới", font=(FONT, 10, "bold"),  # type: ignore
+                               bg=C["sidebar_act"], fg=C["accent"], padx=25, pady=10, cursor="hand2")  # type: ignore
+        shuffle_btn.pack()  # type: ignore
+        shuffle_btn.bind("<Button-1>", lambda e: _shuffle())  # type: ignore
+        self._bind_hover(shuffle_btn, C["sidebar_act"], C["sidebar_h"])  # type: ignore
+
+    def _make_wotd_card(self, body: tk.Frame, idx: int, word: str, CARD_BG: list, CARD_HOV: list) -> None:  # type: ignore
+        base  = CARD_BG[idx % len(CARD_BG)]  # type: ignore
+        hover = CARD_HOV[idx % len(CARD_HOV)]  # type: ignore
+
+        row_frame = tk.Frame(body, bg=C["chat_bg"])  # type: ignore
+        row_frame.pack(fill="x", pady=8, padx=20)  # type: ignore
+
+        card = tk.Frame(row_frame, bg=base, padx=22, pady=16, highlightthickness=2, highlightbackground=hover, cursor="hand2")  # type: ignore
+        card.pack(fill="x")  # type: ignore
+
+        q_lbl  = tk.Label(card, text="?", font=(FONT, 26, "bold"), bg=base, fg="white")  # type: ignore
+        q_lbl.pack(side="left", padx=(0, 12))  # type: ignore
+        ht_lbl = tk.Label(card, text="▸ Bấm để lật", font=(FONT, 9), bg=base, fg="#FBBF24")  # type: ignore
+        ht_lbl.pack(side="left", anchor="s", pady=(0, 4))  # type: ignore
+
+        def _flip(e=None, c=card, w=word, clr=base):  # type: ignore
+            for wg in c.winfo_children(): wg.destroy()  # type: ignore
+            
+            top = tk.Frame(c, bg=clr)  # type: ignore
+            top.pack(fill="x", pady=(0, 8))  # type: ignore
+            tk.Label(top, text=w.upper(), font=(FONT, 20, "bold"), bg=clr, fg="white").pack(side="left")  # type: ignore
+
+            loading_lbl = tk.Label(c, text="⏳ Đang tải...", font=(FONT, 10), bg=clr, fg="#FBBF24")  # type: ignore
+            loading_lbl.pack(anchor="w")  # type: ignore
+
+            def _fetch():  # type: ignore
+                entry = self._dict_app.find_word(w) if self._dict_app else None  # type: ignore
+                self.root.after(0, lambda: self._show_wotd_content(c, clr, loading_lbl, entry))  # type: ignore
+
+            threading.Thread(target=_fetch, daemon=True).start()  # type: ignore
+
+        for w in (card, q_lbl, ht_lbl):  # type: ignore
+            w.bind("<Button-1>", _flip)  # type: ignore
+        self._bind_hover(card, base, hover)  # type: ignore
+
+    def _show_wotd_content(self, card: tk.Frame, clr: str, ll: tk.Label, entry: Optional[LexicalEntry]) -> None:  # type: ignore
+        if not card.winfo_exists(): return  # type: ignore
+        if ll.winfo_exists(): ll.destroy()  # type: ignore
+        if not entry:  # type: ignore
+            tk.Label(card, text="Không tìm thấy nghĩa", font=(FONT, 10), bg=clr, fg="white").pack(anchor="w")  # type: ignore
             return
 
-        # Filter: strictly only words that are already in our offline cache dictionary 
-        # (This guarantees 100% no "Không tìm thấy" and ensures fast loading)
-        valid_words = [w for w in self._words if w in self._dict_app._cache]  # type: ignore
-        if not valid_words:  # type: ignore
-            valid_words = self._words  # type: ignore
-        words = random.sample(valid_words, min(5, len(valid_words)))  # type: ignore
-        CARD_BG  = ["#3730A3", "#9D174D", "#065F46", "#92400E", "#1E40AF"]  # type: ignore  # muted darker cards
-        CARD_HOV = ["#4338CA", "#BE185D", "#047857", "#B45309", "#1D4ED8"]  # type: ignore
+        if entry.short_translation:  # type: ignore
+            tk.Label(card, text=entry.short_translation, font=(FONT, 13, "bold"), bg=clr, fg=C["green"], wraplength=600, justify="left").pack(anchor="w", pady=(0, 8))  # type: ignore
+        
+        for sense in (entry.senses or [])[:2]:  # type: ignore
+            pos = sense.get("pos", "") # type: ignore
+            if pos:  # type: ignore
+                tk.Label(card, text=f"* {pos}", font=(FONT, 10, "bold"), bg=clr, fg=C["accent"]).pack(anchor="w")  # type: ignore
+            
+            for m in (sense.get("meanings", []))[:1]:  # type: ignore
+                en, vi = m.get("en", ""), m.get("vi", "")  # type: ignore
+                if en: tk.Label(card, text=f"+ {en}", font=(FONT, 9), bg=clr, fg="white", wraplength=500, justify="left").pack(anchor="w", padx=10)  # type: ignore
+                if vi: tk.Label(card, text=f"({vi})", font=(FONT, 9, "italic"), bg=clr, fg="#CBD5E1", wraplength=500, justify="left").pack(anchor="w", padx=25)  # type: ignore
 
-        def _make_card(idx: int, word: str) -> None:
-            base  = CARD_BG[idx  % len(CARD_BG)]  # type: ignore
-            hover = CARD_HOV[idx % len(CARD_HOV)]  # type: ignore
-
-            # Compact card - centered with max width
-            row_frame = tk.Frame(body, bg=C["chat_bg"])  # type: ignore
-            row_frame.pack(fill="x", pady=8, padx=20)  # type: ignore
-
-            card = tk.Frame(  # type: ignore
-                row_frame, bg=base, padx=22, pady=16,  # type: ignore
-                highlightthickness=2, highlightbackground=hover,  # type: ignore
-                cursor="hand2",  # type: ignore
-            )  # type: ignore
-            card.pack(fill="x")  # type: ignore
-
-            q_lbl  = tk.Label(card, text="?", font=(FONT, 26, "bold"), bg=base, fg="white")  # type: ignore
-            q_lbl.pack(side="left", padx=(0, 12))  # type: ignore
-            ht_lbl = tk.Label(card, text="▸ Bấm để lật", font=(FONT, 9), bg=base, fg="#FBBF24")  # type: ignore
-            ht_lbl.pack(side="left", anchor="s", pady=(0, 4))  # type: ignore
-
-            flipped = [False]  # type: ignore
-
-            def _flip(e=None, c=card, w=word, clr=base, hv=hover, f=flipped):  # type: ignore
-                if f[0]: return  # type: ignore
-                f[0] = True  # type: ignore
-                for wg in c.winfo_children(): wg.destroy()  # type: ignore
-
-                # Word title
-                top = tk.Frame(c, bg=clr)  # type: ignore
-                top.pack(fill="x", pady=(0, 8))  # type: ignore
-                tk.Label(top, text=w.upper(), font=(FONT, 20, "bold"), bg=clr, fg="white").pack(side="left")  # type: ignore
-
-                # Fetch full entry
-                loading_lbl = tk.Label(c, text="⏳ Đang tải...", font=(FONT, 10), bg=clr, fg="#FBBF24")  # type: ignore
-                loading_lbl.pack(anchor="w")  # type: ignore
-
-                def _fetch(card_=c, clr_=clr, ll=loading_lbl, w_=w):  # type: ignore
-                    entry = None  # type: ignore
-                    if self._dict_app:  # type: ignore
-                        entry = self._dict_app.find_word(w_)  # type: ignore
-                    def _show():  # type: ignore
-                        if not card_.winfo_exists(): return  # type: ignore
-                        if ll.winfo_exists(): ll.destroy()  # type: ignore
-                        if not entry:  # type: ignore
-                            tk.Label(card_, text="Không tìm thấy", font=(FONT, 10), bg=clr_, fg=C["red"]).pack(anchor="w")  # type: ignore
-                            return
-                        # Short translation
-                        short_ = getattr(entry, "short_translation", "")  # type: ignore
-                        if short_:  # type: ignore
-                            tk.Label(card_, text=short_, font=(FONT, 14, "bold"), bg=clr_, fg=C["green"],  # type: ignore
-                                     wraplength=660).pack(anchor="w", pady=(0, 8))  # type: ignore
-                        # Senses (up to 3)
-                        POS_VI = {"noun": "danh từ", "verb": "động từ", "adjective": "tính từ",  # type: ignore
-                                  "adverb": "trạng từ", "pronoun": "đại từ", "preposition": "giới từ"}  # type: ignore
-                        for s in (entry.senses or [])[:3]:  # type: ignore
-                            vi_pos = POS_VI.get((s.pos or "").lower(), s.pos or "")  # type: ignore
-                            if vi_pos:  # type: ignore
-                                tk.Label(card_, text=f"* {vi_pos}", font=(FONT, 10, "bold"),  # type: ignore
-                                         bg=clr_, fg="#93C5FD").pack(anchor="w", pady=(6, 2))  # type: ignore
-                            tk.Label(card_, text=f"+ {s.definition}", font=(FONT, 10),  # type: ignore
-                                     bg=clr_, fg="white", wraplength=660, justify="left").pack(anchor="w", padx=(8, 0))  # type: ignore
-                            if s.translation:  # type: ignore
-                                tk.Label(card_, text=f"  ({s.translation.strip('() ')})", font=(FONT, 9, "italic"),  # type: ignore
-                                         bg=clr_, fg="#D1FAE5", wraplength=660, justify="left").pack(anchor="w", padx=(20, 0))  # type: ignore
-                            # Example
-                            if s.examples:  # type: ignore
-                                ex = s.examples[0]  # type: ignore
-                                if ex.get("en", ""):  # type: ignore
-                                    tk.Label(card_, text=f"  + {ex['en']}", font=(FONT, 9, "italic"),  # type: ignore
-                                             bg=clr_, fg="#BAE6FD", wraplength=660, justify="left").pack(anchor="w", padx=(20, 0))  # type: ignore
-                                    if ex.get("vi", ""):  # type: ignore
-                                        tk.Label(card_, text=f"    ({ex['vi']})", font=(FONT, 8, "italic"),  # type: ignore
-                                                 bg=clr_, fg="#86EFAC", wraplength=660, justify="left").pack(anchor="w", padx=(32, 0))  # type: ignore
-                        # Update scroll region after content loaded
-                        body.update_idletasks()  # type: ignore
-                        wotd_canvas.configure(scrollregion=wotd_canvas.bbox("all"))  # type: ignore
-                    self.root.after(0, _show)  # type: ignore
-                threading.Thread(target=_fetch, daemon=True).start()  # type: ignore
-
-                # Glow-flash
-                def _flash2(step=0, on=True):  # type: ignore
-                    if not c.winfo_exists(): return  # type: ignore
-                    c.config(highlightbackground="white" if on else hv)  # type: ignore
-                    if step < 5: self.root.after(80, _flash2, step+1, not on)  # type: ignore
-                _flash2()  # type: ignore
-
-            # Hover — padding grow
-            def _card_enter(e, c=card, hv=hover, clr=base):  # type: ignore
-                c.config(bg=hv, pady=18)  # type: ignore
-                for wg in c.winfo_children():  # type: ignore
-                    try: wg.config(bg=hv)  # type: ignore
-                    except: pass  # type: ignore
-
-            def _card_leave(e, c=card, clr=base):  # type: ignore
-                c.config(bg=clr, pady=16)  # type: ignore
-                for wg in c.winfo_children():  # type: ignore
-                    try: wg.config(bg=clr)  # type: ignore
-                    except: pass  # type: ignore
-
-            card.bind("<Enter>",    _card_enter)  # type: ignore
-            card.bind("<Leave>",    _card_leave)  # type: ignore
-            card.bind("<Button-1>", _flip)  # type: ignore
-            for ch in card.winfo_children(): ch.bind("<Button-1>", _flip)  # type: ignore
-
-        for i, w in enumerate(words):  # type: ignore
-            self.root.after(i * 110, lambda i_=i, w_=w: _make_card(i_, w_))  # type: ignore
-
-        # Shuffle button
-        btn_row = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
-        btn_row.pack(side="bottom", fill="x", padx=40, pady=10)  # type: ignore
-        sh = tk.Label(btn_row, text="🃏  Xáo bài mới", font=(FONT, 11, "bold"),  # type: ignore
-                      bg=C["accent"], fg="white", padx=20, pady=8, cursor="hand2")  # type: ignore
-        sh.pack(side="left")  # type: ignore
-        sh.bind("<Button-1>", lambda e: self._show_page("wotd"))  # type: ignore
-        self._bind_hover(sh, C["accent"], C["accent2"])  # type: ignore
-        self._bind_click_flash(sh, C["accent"])  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Page: History
@@ -1090,7 +1076,8 @@ class DictionaryUI:
             return
         self._search_var.set("")  # type: ignore
         self._add_user_bubble(kw)  # type: ignore
-        self._add_ai_bubble("⏳ Đang tra cứu...")  # type: ignore
+        loading_txt = "⏳ Đang dịch..." if self._search_mode == "vi_en" else "⏳ Đang tra cứu..."  # type: ignore
+        self._add_ai_bubble(loading_txt)  # type: ignore
 
         # Save to history
         try:  # type: ignore
@@ -1104,7 +1091,8 @@ class DictionaryUI:
         def _do() -> None:
             if not self._dict_app:  # type: ignore
                 return
-            e = self._dict_app.find_word(kw)  # type: ignore
+            current_m = self._search_mode  # type: ignore
+            e = self._dict_app.find_word(kw, mode=current_m)  # type: ignore
             self.root.after(0, self._remove_last_bubble)  # type: ignore
             if e:  # type: ignore
                 self.root.after(0, lambda: self._add_result_bubble(e))  # type: ignore

@@ -35,15 +35,28 @@ class DictionaryApp:
         # In-memory RAM cache function
         self._lru_cache = lru_cache(maxsize=1000)(self._lookup)
 
-    def total_words_cached(self) -> int:
-        return self._index.total_records()
-
-    def find_word(self, keyword: str) -> Optional[LexicalEntry]:
-        """ Public method có bọc lru_cache để đảm bảo lần tra lại lần 3+ là O(1) RAM. """
+    def find_word(self, keyword: str, mode: str = "en_vi") -> Optional[LexicalEntry]:
+        """ Public method tìm kiếm. Hỗ trợ mode 'en_vi' (mặc định) và 'vi_en'. """
         keyword = keyword.strip()
         if not keyword:
             return None
 
+        # CHẾ ĐỘ 1: DỊCH VIỆT - ANH (Sử dụng Google Translate)
+        if mode == "vi_en":  # type: ignore
+            try:  # type: ignore
+                from deep_translator import GoogleTranslator  # type: ignore
+                translated = GoogleTranslator(source='vi', target='en').translate(keyword)
+                return LexicalEntry(
+                    word=keyword,
+                    short_translation=translated,
+                    senses=[],
+                    source="Google Translate (Vi-En)"
+                )
+            except Exception as e:
+                print(f"Vi-En translation failed: {e}")
+                return None
+
+        # CHẾ ĐỘ 2: ANH - VIỆT (Dùng Cache/API)
         # TÍNH NĂNG MỚI: Dịch Nguyên Câu bằng Google Translate
         if " " in keyword or len(keyword) > 25:
             try:
@@ -60,6 +73,9 @@ class DictionaryApp:
                 return None
 
         return self._lru_cache(keyword.lower())
+
+    def total_words_cached(self) -> int:
+        return self._index.total_records()
 
     def _lookup(self, keyword: str) -> Optional[LexicalEntry]:
         """ Logic tìm kiếm nội bộ: HDD -> API -> Save to HDD """
