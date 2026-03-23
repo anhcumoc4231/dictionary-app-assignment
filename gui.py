@@ -36,24 +36,24 @@ def _ensure_file(path: str) -> None:
 
 # ── Colour Palette ─────────────────────────────────────────────────────────────
 C: dict = {  # type: ignore
-    "bg":          "#0F0F17",  # type: ignore
-    "sidebar":     "#13131F",  # type: ignore
-    "sidebar_h":   "#1D1D30",  # type: ignore
-    "sidebar_act": "#1E1E38",  # type: ignore
-    "chat_bg":     "#0F0F17",  # type: ignore
-    "bubble_ai":   "#1C1C2E",  # type: ignore
-    "bubble_user": "#3B1F5E",  # type: ignore
-    "accent":      "#8B5CF6",  # type: ignore
+    "bg":          "#111827",  # type: ignore   # dark slate (readable)
+    "sidebar":     "#0F172A",  # type: ignore   # navy sidebar
+    "sidebar_h":   "#1E293B",  # type: ignore   # hover
+    "sidebar_act": "#1E3A5F",  # type: ignore   # active (medium blue)
+    "chat_bg":     "#111827",  # type: ignore
+    "bubble_ai":   "#1E293B",  # type: ignore   # slightly lighter card
+    "bubble_user": "#4C1D95",  # type: ignore   # vivid purple user
+    "accent":      "#818CF8",  # type: ignore   # indigo-400 for readability
     "accent2":     "#EC4899",  # type: ignore
-    "gold":        "#F59E0B",  # type: ignore
-    "green":       "#10B981",  # type: ignore
-    "red":         "#EF4444",  # type: ignore
-    "text_main":   "#F1F5F9",  # type: ignore
-    "text_dim":    "#6B7280",  # type: ignore
-    "text_sub":    "#9CA3AF",  # type: ignore
-    "input_bg":    "#1C1C2E",  # type: ignore
-    "input_bdr":   "#2D2D5E",  # type: ignore
-    "border":      "#2A2A4A",  # type: ignore
+    "gold":        "#FBBF24",  # type: ignore
+    "green":       "#34D399",  # type: ignore   # brighter mint
+    "red":         "#F87171",  # type: ignore
+    "text_main":   "#F1F5F9",  # type: ignore   # white-ish
+    "text_dim":    "#94A3B8",  # type: ignore   # slate-400 — much easier to read
+    "text_sub":    "#CBD5E1",  # type: ignore   # slate-300
+    "input_bg":    "#1E293B",  # type: ignore
+    "input_bdr":   "#4338CA",  # type: ignore   # bright indigo border
+    "border":      "#334155",  # type: ignore   # slate-700
 }  # type: ignore
 
 FONT         = "Segoe UI"  # type: ignore
@@ -108,6 +108,7 @@ class DictionaryUI:
         self._glow_on      = False  # type: ignore
         self._pages:       dict = {}  # type: ignore
         self._nav_btns:    dict = {}  # type: ignore
+        self._sidebar_w:   int  = SIDEBAR_COL  # type: ignore  # tracks actual current width
 
         # ── chat canvas references (created by _build_chat_page) ──
         self._canvas:      Optional[tk.Canvas] = None  # type: ignore
@@ -266,12 +267,15 @@ class DictionaryUI:
         self._anim_sidebar(target)  # type: ignore
 
     def _anim_sidebar(self, target: int) -> None:
-        cur  = self._sidebar_frame.winfo_width()  # type: ignore
+        cur  = self._sidebar_w  # type: ignore
         diff = target - cur  # type: ignore
         if abs(diff) <= 4:  # type: ignore
+            self._sidebar_w = target  # type: ignore
             self._sidebar_frame.config(width=target)  # type: ignore
             return
-        self._sidebar_frame.config(width=cur + (10 if diff > 0 else -10))  # type: ignore
+        step = 10 if abs(diff) > 20 else 4  # type: ignore
+        self._sidebar_w = cur + (step if diff > 0 else -step)  # type: ignore
+        self._sidebar_frame.config(width=self._sidebar_w)  # type: ignore
         self.root.after(8, self._anim_sidebar, target)  # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
@@ -485,8 +489,27 @@ class DictionaryUI:
                  font=(FONT, 10), bg=C["bg"], fg=C["text_dim"]).pack(pady=(0, 6))  # type: ignore
         tk.Frame(parent, bg=C["border"], height=1).pack(fill="x")  # type: ignore
 
-        body = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
-        body.pack(fill="both", expand=True, padx=40, pady=14)  # type: ignore
+        # --- Scrollable area ---
+        outer = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
+        outer.pack(fill="both", expand=True)  # type: ignore
+
+        wotd_scr = tk.Scrollbar(outer, orient="vertical", bg=C["bg"],  # type: ignore
+                                troughcolor=C["chat_bg"], activebackground=C["accent"], width=8)  # type: ignore
+        wotd_scr.pack(side="right", fill="y")  # type: ignore
+
+        wotd_canvas = tk.Canvas(outer, bg=C["chat_bg"], bd=0,  # type: ignore
+                                highlightthickness=0, yscrollcommand=wotd_scr.set)  # type: ignore
+        wotd_canvas.pack(side="left", fill="both", expand=True)  # type: ignore
+        wotd_scr.config(command=wotd_canvas.yview)  # type: ignore
+
+        body = tk.Frame(wotd_canvas, bg=C["chat_bg"])  # type: ignore
+        wotd_win = wotd_canvas.create_window((0, 0), window=body, anchor="nw")  # type: ignore
+
+        def _on_resize(e):  # type: ignore
+            wotd_canvas.itemconfig(wotd_win, width=e.width)  # type: ignore
+        wotd_canvas.bind("<Configure>", _on_resize)  # type: ignore
+        body.bind("<Configure>", lambda e: wotd_canvas.configure(scrollregion=wotd_canvas.bbox("all")))  # type: ignore
+        wotd_canvas.bind_all("<MouseWheel>", lambda e: wotd_canvas.yview_scroll(int(-1*(e.delta/120)), "units") if self._current_page=="wotd" else None)  # type: ignore
 
         if not self._words or not self._dict_app:  # type: ignore
             tk.Label(body, text="⏳ Đang tải dữ liệu...",  # type: ignore
@@ -494,96 +517,117 @@ class DictionaryUI:
             return
 
         words = random.sample(self._words, min(5, len(self._words)))  # type: ignore
-        CARD_BG  = ["#6D28D9", "#DB2777", "#059669", "#D97706", "#2563EB"]  # type: ignore
-        CARD_HOV = ["#7C3AED", "#EC4899", "#10B981", "#F59E0B", "#3B82F6"]  # type: ignore
+        CARD_BG  = ["#3730A3", "#9D174D", "#065F46", "#92400E", "#1E40AF"]  # type: ignore  # muted darker cards
+        CARD_HOV = ["#4338CA", "#BE185D", "#047857", "#B45309", "#1D4ED8"]  # type: ignore
 
         def _make_card(idx: int, word: str) -> None:
             base  = CARD_BG[idx  % len(CARD_BG)]  # type: ignore
             hover = CARD_HOV[idx % len(CARD_HOV)]  # type: ignore
 
+            # Compact card - centered with max width
+            row_frame = tk.Frame(body, bg=C["chat_bg"])  # type: ignore
+            row_frame.pack(fill="x", pady=8, padx=20)  # type: ignore
+
             card = tk.Frame(  # type: ignore
-                body, bg=base, padx=28, pady=20,  # type: ignore
+                row_frame, bg=base, padx=22, pady=16,  # type: ignore
                 highlightthickness=2, highlightbackground=hover,  # type: ignore
                 cursor="hand2",  # type: ignore
             )  # type: ignore
-            card.pack(fill="x", pady=6, padx=6)  # type: ignore
+            card.pack(fill="x")  # type: ignore
 
-            q_lbl  = tk.Label(card, text="?",    font=(FONT, 30, "bold"), bg=base, fg="white")  # type: ignore
-            q_lbl.pack()  # type: ignore
+            q_lbl  = tk.Label(card, text="?", font=(FONT, 26, "bold"), bg=base, fg="white")  # type: ignore
+            q_lbl.pack(side="left", padx=(0, 12))  # type: ignore
             ht_lbl = tk.Label(card, text="▸ Bấm để lật", font=(FONT, 9), bg=base, fg="#FBBF24")  # type: ignore
-            ht_lbl.pack()  # type: ignore
+            ht_lbl.pack(side="left", anchor="s", pady=(0, 4))  # type: ignore
 
             flipped = [False]  # type: ignore
 
-            def _flip(e: object = None, c: tk.Frame = card, w: str = word,
-                      clr: str = base, hv: str = hover, f: list = flipped) -> None:  # type: ignore
-                if f[0]:  # type: ignore
-                    return
+            def _flip(e=None, c=card, w=word, clr=base, hv=hover, f=flipped):  # type: ignore
+                if f[0]: return  # type: ignore
                 f[0] = True  # type: ignore
-                for wg in c.winfo_children():  # type: ignore
-                    wg.destroy()  # type: ignore
-                tk.Label(c, text=w.upper(), font=(FONT, 26, "bold"), bg=clr, fg="white").pack()  # type: ignore
+                for wg in c.winfo_children(): wg.destroy()  # type: ignore
 
-                # Instant from cache, background-fetch if miss
-                entry = None  # type: ignore
-                if self._dict_app:  # type: ignore
-                    try:  # type: ignore
-                        entry = self._dict_app.find_word_cached(w)  # type: ignore
-                    except AttributeError:  # type: ignore
-                        pass
+                # Word title
+                top = tk.Frame(c, bg=clr)  # type: ignore
+                top.pack(fill="x", pady=(0, 8))  # type: ignore
+                tk.Label(top, text=w.upper(), font=(FONT, 20, "bold"), bg=clr, fg="white").pack(side="left")  # type: ignore
 
-                ml = tk.Label(c, text="…", font=(FONT, 15), bg=clr,  # type: ignore
-                              fg=C["green"], wraplength=720)  # type: ignore
-                ml.pack(pady=(6, 0))  # type: ignore
+                # Fetch full entry
+                loading_lbl = tk.Label(c, text="⏳ Đang tải...", font=(FONT, 10), bg=clr, fg="#FBBF24")  # type: ignore
+                loading_lbl.pack(anchor="w")  # type: ignore
 
-                if entry:  # type: ignore
-                    meaning = getattr(entry, "short_translation", "") or ""  # type: ignore
-                    ml.config(text=meaning or "—")  # type: ignore
-                else:  # type: ignore
-                    def _fetch(label: tk.Label = ml, word_: str = w) -> None:
-                        en = self._dict_app.find_word(word_) if self._dict_app else None  # type: ignore
-                        def _upd() -> None:
-                            if label.winfo_exists():  # type: ignore
-                                label.config(text=(getattr(en, "short_translation", "") or "—") if en else "—")  # type: ignore
-                        self.root.after(0, _upd)  # type: ignore
-                    threading.Thread(target=_fetch, daemon=True).start()  # type: ignore
+                def _fetch(card_=c, clr_=clr, ll=loading_lbl, w_=w):  # type: ignore
+                    entry = None  # type: ignore
+                    if self._dict_app:  # type: ignore
+                        entry = self._dict_app.find_word(w_)  # type: ignore
+                    def _show():  # type: ignore
+                        if not card_.winfo_exists(): return  # type: ignore
+                        if ll.winfo_exists(): ll.destroy()  # type: ignore
+                        if not entry:  # type: ignore
+                            tk.Label(card_, text="Không tìm thấy", font=(FONT, 10), bg=clr_, fg=C["red"]).pack(anchor="w")  # type: ignore
+                            return
+                        # Short translation
+                        short_ = getattr(entry, "short_translation", "")  # type: ignore
+                        if short_:  # type: ignore
+                            tk.Label(card_, text=short_, font=(FONT, 14, "bold"), bg=clr_, fg=C["green"],  # type: ignore
+                                     wraplength=660).pack(anchor="w", pady=(0, 8))  # type: ignore
+                        # Senses (up to 3)
+                        POS_VI = {"noun": "danh từ", "verb": "động từ", "adjective": "tính từ",  # type: ignore
+                                  "adverb": "trạng từ", "pronoun": "đại từ", "preposition": "giới từ"}  # type: ignore
+                        for s in (entry.senses or [])[:3]:  # type: ignore
+                            vi_pos = POS_VI.get((s.pos or "").lower(), s.pos or "")  # type: ignore
+                            if vi_pos:  # type: ignore
+                                tk.Label(card_, text=f"* {vi_pos}", font=(FONT, 10, "bold"),  # type: ignore
+                                         bg=clr_, fg="#93C5FD").pack(anchor="w", pady=(6, 2))  # type: ignore
+                            tk.Label(card_, text=f"+ {s.definition}", font=(FONT, 10),  # type: ignore
+                                     bg=clr_, fg="white", wraplength=660, justify="left").pack(anchor="w", padx=(8, 0))  # type: ignore
+                            if s.translation:  # type: ignore
+                                tk.Label(card_, text=f"  ({s.translation.strip('() ')})", font=(FONT, 9, "italic"),  # type: ignore
+                                         bg=clr_, fg="#D1FAE5", wraplength=660, justify="left").pack(anchor="w", padx=(20, 0))  # type: ignore
+                            # Example
+                            if s.examples:  # type: ignore
+                                ex = s.examples[0]  # type: ignore
+                                if ex.get("en", ""):  # type: ignore
+                                    tk.Label(card_, text=f"  + {ex['en']}", font=(FONT, 9, "italic"),  # type: ignore
+                                             bg=clr_, fg="#BAE6FD", wraplength=660, justify="left").pack(anchor="w", padx=(20, 0))  # type: ignore
+                                    if ex.get("vi", ""):  # type: ignore
+                                        tk.Label(card_, text=f"    ({ex['vi']})", font=(FONT, 8, "italic"),  # type: ignore
+                                                 bg=clr_, fg="#86EFAC", wraplength=660, justify="left").pack(anchor="w", padx=(32, 0))  # type: ignore
+                        # Update scroll region after content loaded
+                        body.update_idletasks()  # type: ignore
+                        wotd_canvas.configure(scrollregion=wotd_canvas.bbox("all"))  # type: ignore
+                    self.root.after(0, _show)  # type: ignore
+                threading.Thread(target=_fetch, daemon=True).start()  # type: ignore
 
-                # Border glow-flash on flip
-                def _flash(step: int = 0, on: bool = True) -> None:
-                    if not c.winfo_exists():  # type: ignore
-                        return
+                # Glow-flash
+                def _flash2(step=0, on=True):  # type: ignore
+                    if not c.winfo_exists(): return  # type: ignore
                     c.config(highlightbackground="white" if on else hv)  # type: ignore
-                    if step < 5:  # type: ignore
-                        self.root.after(80, _flash, step + 1, not on)  # type: ignore
-                _flash()  # type: ignore
+                    if step < 5: self.root.after(80, _flash2, step+1, not on)  # type: ignore
+                _flash2()  # type: ignore
 
-            # Hover — slight padding grow (scale illusion)
-            def _card_enter(e: object, c: tk.Frame = card, clr: str = base, hv: str = hover) -> None:
-                c.config(bg=hv, pady=24)  # type: ignore
+            # Hover — padding grow
+            def _card_enter(e, c=card, hv=hover, clr=base):  # type: ignore
+                c.config(bg=hv, pady=18)  # type: ignore
                 for wg in c.winfo_children():  # type: ignore
-                    try:  # type: ignore
-                        wg.config(bg=hv)  # type: ignore
-                    except Exception:  # type: ignore
-                        pass
+                    try: wg.config(bg=hv)  # type: ignore
+                    except: pass  # type: ignore
 
-            def _card_leave(e: object, c: tk.Frame = card, clr: str = base) -> None:
-                c.config(bg=clr, pady=20)  # type: ignore
+            def _card_leave(e, c=card, clr=base):  # type: ignore
+                c.config(bg=clr, pady=16)  # type: ignore
                 for wg in c.winfo_children():  # type: ignore
-                    try:  # type: ignore
-                        wg.config(bg=clr)  # type: ignore
-                    except Exception:  # type: ignore
-                        pass
+                    try: wg.config(bg=clr)  # type: ignore
+                    except: pass  # type: ignore
 
             card.bind("<Enter>",    _card_enter)  # type: ignore
             card.bind("<Leave>",    _card_leave)  # type: ignore
             card.bind("<Button-1>", _flip)  # type: ignore
-            for ch in card.winfo_children():  # type: ignore
-                ch.bind("<Button-1>", _flip)  # type: ignore
+            for ch in card.winfo_children(): ch.bind("<Button-1>", _flip)  # type: ignore
 
         for i, w in enumerate(words):  # type: ignore
             self.root.after(i * 110, lambda i_=i, w_=w: _make_card(i_, w_))  # type: ignore
 
-        # Bottom buttons
+        # Shuffle button
         btn_row = tk.Frame(parent, bg=C["chat_bg"])  # type: ignore
         btn_row.pack(side="bottom", fill="x", padx=40, pady=10)  # type: ignore
         sh = tk.Label(btn_row, text="🃏  Xáo bài mới", font=(FONT, 11, "bold"),  # type: ignore
