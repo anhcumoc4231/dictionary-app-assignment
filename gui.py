@@ -314,6 +314,7 @@ class DictionaryUI:
                 builders[pid](frame)  # type: ignore
 
             self._pages[pid].pack(fill="both", expand=True)  # type: ignore
+            self._current_page = pid  # type: ignore
             self._set_nav_active(pid)  # type: ignore
         except Exception as e:  # type: ignore
             print(f"Page builder error [{pid}]: {e}")  # type: ignore
@@ -852,9 +853,15 @@ class DictionaryUI:
                 pass
 
     def _scroll_to_bottom(self) -> None:
-        if self._canvas:  # type: ignore
+        if self._canvas and self._canvas.winfo_exists():  # type: ignore
             self.root.update_idletasks()  # type: ignore
             self._canvas.yview_moveto(1.0)  # type: ignore
+
+    def _bind_scrolling(self, widget: tk.Widget) -> None: # type: ignore
+        """Bind scroll to a widget and its children for delegation."""
+        widget.bind("<MouseWheel>", self._on_mousewheel) # type: ignore
+        for child in widget.winfo_children(): # type: ignore
+            self._bind_scrolling(child) # type: ignore
 
     # ══════════════════════════════════════════════════════════════════════════
     # Bubble rendering
@@ -871,6 +878,7 @@ class DictionaryUI:
         tk.Label(bubble, text=f"🔍  {text}", font=(FONT, 12, "bold"),  # type: ignore
                  bg=C["bubble_user"], fg="white",  # type: ignore
                  wraplength=420, justify="right").pack()  # type: ignore
+        self._bind_scrolling(row)  # type: ignore
         self._scroll_to_bottom()  # type: ignore
 
     def _add_ai_bubble(self, text: str) -> None:
@@ -887,6 +895,7 @@ class DictionaryUI:
                        wraplength=700, justify="left")  # type: ignore
         lbl.pack(anchor="w")  # type: ignore
         self._animate_typing(lbl, text.replace("**", "").replace("\\n", "\n"))  # type: ignore
+        self._bind_scrolling(row)  # type: ignore
         self._scroll_to_bottom()  # type: ignore
 
     def _add_result_bubble(self, entry: LexicalEntry) -> None:
@@ -933,6 +942,7 @@ class DictionaryUI:
                          bg=C["bubble_ai"], fg=C["green"], wraplength=660, justify="left").pack(anchor="w", pady=(0, 10))  # type: ignore
                          
             self._animate_senses(bubble, entry, entry.senses or [])  # type: ignore
+            self._bind_scrolling(row)  # type: ignore
 
         def stage_2() -> None:
             if not bubble.winfo_exists():  # type: ignore
