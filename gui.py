@@ -845,47 +845,31 @@ class DictionaryUI:
                  bg=C["chat_bg"], fg=C["accent"]).pack(side="left", anchor="n", padx=(0, 8), pady=4)  # type: ignore
 
         bubble = tk.Frame(row, bg=C["bubble_ai"], padx=20, pady=14)  # type: ignore
-        bubble.pack(side="left", fill="x", expand=True)  # type: ignore
+        bubble.pack(side="left")  # type: ignore
 
         import re
         ipa = entry.uk_ipa or entry.us_ipa  # type: ignore
-        title = entry.word.lower()  # type: ignore
-        if ipa:  # type: ignore
-            title += f" /{re.sub(r'[/\\[\\]\\s]', '', ipa)}/"  # type: ignore
-
-        short = getattr(entry, "short_translation", "")  # type: ignore
-        if not short and entry.senses:  # type: ignore
-            for s in entry.senses:  # type: ignore
-                if s.translation:  # type: ignore
-                    short = s.translation  # type: ignore
-                    break
+        title_word = entry.word.lower()  # type: ignore
+        ipa_str = f" /{re.sub(r'[/\\[\\]\\s]', '', ipa)}/" if ipa else ""  # type: ignore
 
         source = getattr(entry, "source", "")  # type: ignore
 
-        title_lbl = tk.Label(bubble, text="", font=(FONT, 22, "bold"),  # type: ignore
+        title_frame = tk.Frame(bubble, bg=C["bubble_ai"])  # type: ignore
+        title_frame.pack(anchor="w", pady=(0, 2))  # type: ignore
+        
+        title_lbl = tk.Label(title_frame, text="", font=(FONT, 22, "bold"),  # type: ignore
                              bg=C["bubble_ai"], fg=C["text_main"])  # type: ignore
-        title_lbl.pack(anchor="w", pady=(0, 2))  # type: ignore
-
-        src_lbl   = tk.Label(bubble, text="", font=(FONT, 9),  # type: ignore
-                             bg=C["bubble_ai"], fg=C["text_dim"])  # type: ignore
-        short_lbl = tk.Label(bubble, text="", font=(FONT, 17, "bold"),  # type: ignore
-                             bg=C["bubble_ai"], fg=C["green"],  # type: ignore
-                             wraplength=660, justify="left")  # type: ignore
-
-        def stage_4() -> None:
-            if not bubble.winfo_exists():  # type: ignore
-                return
-            tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=10)  # type: ignore
-            self._animate_senses(bubble, entry, entry.senses)  # type: ignore
+        title_lbl.pack(side="left", anchor="bottom")  # type: ignore
+        
+        ipa_lbl = tk.Label(title_frame, text="", font=(FONT, 14),  # type: ignore
+                           bg=C["bubble_ai"], fg=C["text_dim"])  # type: ignore
+        ipa_lbl.pack(side="left", anchor="bottom", padx=(8, 0), pady=(0, 4))  # type: ignore
 
         def stage_3() -> None:
             if not bubble.winfo_exists():  # type: ignore
                 return
-            if short:  # type: ignore
-                short_lbl.pack(anchor="w", pady=(8, 4))  # type: ignore
-                self._animate_typing(short_lbl, short, on_complete=stage_4)  # type: ignore
-            else:  # type: ignore
-                stage_4()  # type: ignore
+            tk.Frame(bubble, bg="#4A4A8A", height=1).pack(fill="x", pady=10)  # type: ignore
+            self._animate_senses(bubble, entry, entry.senses)  # type: ignore
 
         def stage_2() -> None:
             if not bubble.winfo_exists():  # type: ignore
@@ -897,7 +881,13 @@ class DictionaryUI:
             else:  # type: ignore
                 stage_3()  # type: ignore
 
-        self._animate_typing(title_lbl, title, on_complete=stage_2)  # type: ignore
+        def stage_1() -> None:
+            if ipa_str and bubble.winfo_exists():  # type: ignore
+                self._animate_typing(ipa_lbl, ipa_str, on_complete=stage_2)  # type: ignore
+            else:
+                stage_2()
+                
+        self._animate_typing(title_lbl, title_word, on_complete=stage_1)  # type: ignore
         self._last_entry = entry  # type: ignore
 
     def _add_not_found_bubble(self, kw: str) -> None:
@@ -908,7 +898,7 @@ class DictionaryUI:
         tk.Label(row, text="🤖", font=(FONT, 16),  # type: ignore
                  bg=C["chat_bg"], fg=C["accent"]).pack(side="left", anchor="n", padx=(0, 8), pady=4)  # type: ignore
         bubble = tk.Frame(row, bg="#2A1515", padx=16, pady=12)  # type: ignore
-        bubble.pack(side="left", fill="x", expand=True)  # type: ignore
+        bubble.pack(side="left")  # type: ignore
         tk.Label(bubble, text=f"❌  Không tìm thấy «{kw}»",  # type: ignore
                  font=(FONT, 12, "bold"), bg="#2A1515", fg=C["red"]).pack(anchor="w")  # type: ignore
         tk.Label(bubble,  # type: ignore
@@ -925,7 +915,7 @@ class DictionaryUI:
         tk.Label(row, text="🤖", font=(FONT, 22),  # type: ignore
                  bg=C["chat_bg"], fg=C["accent"]).pack(side="left", anchor="n", padx=(0, 10))  # type: ignore
         b = tk.Frame(row, bg=C["bubble_ai"], padx=20, pady=14)  # type: ignore
-        b.pack(side="left", fill="x", expand=True)  # type: ignore
+        b.pack(side="left")  # type: ignore
         tk.Label(b, text="Xin chào! Tôi là AI Từ Điển Anh-Việt 🌟",  # type: ignore
                  font=(FONT, 14, "bold"), bg=C["bubble_ai"], fg=C["text_main"]).pack(anchor="w")  # type: ignore
         tk.Label(b,  # type: ignore
@@ -954,8 +944,8 @@ class DictionaryUI:
         s = senses[idx]  # type: ignore
         vi_pos = self._POS_VI.get((s.pos or "").lower(), s.pos or "")  # type: ignore
         if vi_pos:  # type: ignore
-            tk.Label(bubble, text=f"* {vi_pos}", font=(FONT, 10, "bold"),  # type: ignore
-                     bg=C["bubble_ai"], fg="#5C9BD1").pack(anchor="w", pady=(6, 2))  # type: ignore
+            tk.Label(bubble, text=f"* {vi_pos}", font=(FONT, 11, "bold"),  # type: ignore
+                     bg=C["bubble_ai"], fg="#3B82F6").pack(anchor="w", pady=(10, 2))  # type: ignore
 
         def_lbl = tk.Label(bubble, text="", font=(FONT, 11),  # type: ignore
                            bg=C["bubble_ai"], fg=C["text_main"],  # type: ignore
